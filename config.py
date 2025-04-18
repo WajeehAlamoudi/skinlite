@@ -32,7 +32,7 @@ run_config = {
     # ==== Optimizer ====
     "OPTI_NAME": 'adam',
     "OPTI_LR": 2e-3,
-    "OPTI_MOMENTUM": 0.99,
+    "OPTI_MOMENTUM": 0.95,
     "LOWER_LR_AFTER": 7,
     "LR_STEP": 10,
     "WEIGHT_DECAY": 0.0001,

@@ -22,7 +22,7 @@ run_config = {
     "IMAGE_SIZE": 224,
     "NUM_CLASSES": 7,
     "BATCH_SIZE": 32,
-    "NUM_WORKERS": 0,
+    "NUM_WORKERS": 8,
 
     # ==== CNN model ====
     "MODEL_ARCH": "mobilenetv2",

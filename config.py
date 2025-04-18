@@ -27,7 +27,7 @@ run_config = {
     # ==== CNN model ====
     "MODEL_ARCH": "mobilenetv2",
     "TRAINABLE_LAYERS": 70,
-    "PRE_TRAINED": True,
+    "PRE_TRAINED": False,
 
     # ==== Optimizer ====
     "OPTI_NAME": 'adam',

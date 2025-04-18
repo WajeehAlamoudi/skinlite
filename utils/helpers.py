@@ -1,7 +1,10 @@
-import os
 import pandas as pd
 from collections import Counter
 import torch
+import os
+import yaml
+import csv
+from datetime import datetime
 
 
 def load_labeled_paths(train_img_dir, train_labels_dir):
@@ -23,6 +26,33 @@ def compute_class_weights(labels, num_classes):
     }
 
     return class_weights
+
+
+def setup_run_folder(base_dir, run_config):
+    """
+    Create a timestamped run directory, save run config as YAML,
+    and initialize a CSV logger.
+    """
+    run_name = datetime.now().strftime("run_%Y%m%d_%H%M")
+    run_dir = os.path.join(base_dir, "runs", run_name)
+    os.makedirs(run_dir, exist_ok=True)
+
+    # Save config to YAML
+    yaml_path = os.path.join(run_dir, "config.yaml")
+    with open(yaml_path, 'w') as f:
+        yaml.dump(run_config, f)
+
+    # Prepare CSV log file
+    csv_log_path = os.path.join(run_dir, f"log_{run_name}.csv")
+    with open(csv_log_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["epoch", "train_loss", "train_acc", "val_loss", "val_acc"])
+
+    print(f"📁 Run directory created: {run_dir}")
+    print(f"📄 Config saved to:        {yaml_path}")
+    print(f"📊 Log CSV initialized:    {csv_log_path}")
+
+    return run_dir, csv_log_path
 
 
 class Nadam(torch.optim.Optimizer):

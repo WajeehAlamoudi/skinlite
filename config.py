@@ -22,7 +22,7 @@ run_config = {
     "IMAGE_SIZE": 224,
     "NUM_CLASSES": 7,
     "BATCH_SIZE": 32,
-    "NUM_WORKERS": 4,
+    "NUM_WORKERS": 0,
 
     # ==== CNN model ====
     "MODEL_ARCH": "mobilenetv2",
@@ -35,6 +35,9 @@ run_config = {
     "OPTI_MOMENTUM": 0.99,
     "LOWER_LR_AFTER": 7,
     "LR_STEP": 10,
+
+    # === Train ===
+    "EPOCH": 1,
 
 }
 

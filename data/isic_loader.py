@@ -37,10 +37,9 @@ class ISICDataset(Dataset):
         label = self.label_paths[idx]
 
         image = Image.open(img_path).convert("RGB")
-        original_image = image.copy()
 
         transformed_image = self.transform(image)
-        return original_image, transformed_image, label
+        return transformed_image, label
 
     def get_loader(self, batch_size, num_workers):
         if self.set_state == 'train':

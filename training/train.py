@@ -1,35 +1,30 @@
+import csv
+
 import torch
 from torch import nn
 
 import config
 from data.isic_loader import ISICDataset
 import os
-from datetime import datetime
-from torchvision.transforms.functional import to_pil_image
+from utils.helpers import setup_run_folder
 from models.model import build_model
 from models.optimizer import get_optimizer
 
 # 🔸 Step 1: Create a run folder
-run_name = datetime.now().strftime("run_%Y%m%d_%H%M")
-run_dir = os.path.join(config.BASE_DIR, "runs", run_name)
-os.makedirs(run_dir, exist_ok=True)
-print(f"📁 Created run directory at: {run_dir}")
+run_dir, log_csv_path = setup_run_folder(config.BASE_DIR, config.run_config)
+
 
 # 🔸 Step 2: Load dataset
 train_dataset = ISICDataset(set_state='train', output_size=config.run_config['IMAGE_SIZE'])
 val_dataset = ISICDataset(set_state='val', output_size=config.run_config['IMAGE_SIZE'])
-
-# 🔸 Step 2.1: show sample
-original_image, transformed_image, label = train_dataset.__getitem__(7)
-print(f'val dataset samples: {train_dataset.__len__()}')
-# Save both
-original_save_path = os.path.join(run_dir, f"original_label{label}.jpg")
-transformed_save_path = os.path.join(run_dir, f"transformed_label{label}.jpg")
-original_image.save(original_save_path)  # This is already a PIL.Image
-to_pil_image(transformed_image).save(transformed_save_path)
-print(f"✅ Saved original to:     {original_save_path}")
-print(f"✅ Saved transformed to: {transformed_save_path}")
-
+train_loader = train_dataset.get_loader(
+    batch_size=config.run_config['BATCH_SIZE'],
+    num_workers=config.run_config['NUM_WORKERS']
+)
+val_loader = val_dataset.get_loader(
+    batch_size=config.run_config['BATCH_SIZE'],
+    num_workers=config.run_config['NUM_WORKERS']
+)
 
 # 🔸 Step 3: Initialize model
 model = build_model(
@@ -51,19 +46,68 @@ optimizer, scheduler = get_optimizer(
     lr_step=config.run_config['LR_STEP']
 )
 
-# criterion = CrossEntropyLoss()
 
 # 🔸 Step 5: Setup device and loss function
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 criterion = nn.CrossEntropyLoss()
-# 🔸 Step 6: Optionally save config to run_dir
-# import yaml
-# with open(os.path.join(run_dir, "config.yaml"), "w") as f:
-#     yaml.dump(config.run_config, f)
 
-# 🔸 Step 7: Setup logging (e.g., TensorBoard)
-# writer = SummaryWriter(log_dir=run_dir)
+num_epochs = config.run_config['EPOCH']
+best_val_accuracy = 0.0
+
+# 🔸 Step 6: Train
+for epoch in range(num_epochs):
+    print(f"\n🔁 Epoch {epoch+1}/{num_epochs}")
+
+    # === Train ===
+    model.train()
+    train_loss, train_correct = 0.0, 0
+    for images, labels in train_loader:
+        images, labels = images.to(device), labels.to(device)
+
+        optimizer.zero_grad()
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        train_loss += loss.item() * images.size(0)
+        train_correct += (outputs.argmax(1) == labels).sum().item()
+
+    train_accuracy = train_correct / len(train_loader.dataset)
+    avg_train_loss = train_loss / len(train_loader.dataset)
+
+    # === Validate ===
+    model.eval()
+    val_loss, val_correct = 0.0, 0
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+
+            val_loss += loss.item() * images.size(0)
+            val_correct += (outputs.argmax(1) == labels).sum().item()
+
+    val_accuracy = val_correct / len(val_loader.dataset)
+    avg_val_loss = val_loss / len(val_loader.dataset)
+
+    scheduler.step()
+
+    # Log
+    print(f"🧠 Train Loss: {avg_train_loss:.4f} | Accuracy: {train_accuracy:.4f}")
+    print(f"🧪 Val   Loss: {avg_val_loss:.4f} | Accuracy: {val_accuracy:.4f}")
+
+    # Write results to CSV
+    with open(log_csv_path, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([epoch + 1, avg_train_loss, train_accuracy, avg_val_loss, val_accuracy])
+
+    # Save best model
+    if val_accuracy > best_val_accuracy:
+        best_val_accuracy = val_accuracy
+        torch.save(model.state_dict(), os.path.join(run_dir, "best_model.pth"))
+        print("✅ Best model saved!")
 
 # Ready to train
 print("✅ Training setup complete. Ready to begin training.")

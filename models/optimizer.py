@@ -1,18 +1,37 @@
 from utils.helpers import Nadam
-from torch.optim import Adam, RMSprop, SGD
+from torch.optim import Adam, RMSprop, SGD, lr_scheduler
 
 
-def get_optimizer(optim_params, optim_name, optim_lr, optim_momentum):
-
+def get_optimizer(optim_params, optim_name, optim_lr, optim_momentum, change_after, lr_step):
     optim_name = optim_name.lower()
 
     if optim_name == 'adam':
-        return Adam(optim_params, lr=optim_lr)
+        optimizer = Adam(optim_params, lr=optim_lr)
+
     elif optim_name == 'sgd':
-        return SGD(optim_params, lr=optim_lr, momentum=optim_momentum)
+        optimizer = SGD(optim_params, lr=optim_lr, momentum=optim_momentum)
+
     elif optim_name == 'rmsprop':
-        return RMSprop(optim_params, lr=optim_lr, momentum=optim_momentum)
+        optimizer = RMSprop(optim_params, lr=optim_lr, momentum=optim_momentum)
+
     elif optim_name == 'nadam':
-        return Nadam(optim_params, lr=optim_lr)
+        optimizer = Nadam(optim_params, lr=optim_lr)
+
     else:
         raise ValueError(f"❌ Unknown optimizer: {optim_name}")
+
+    # Attach a scheduler to decay LR after `change_after` epochs by a factor of 1/lr_step
+    scheduler = lr_scheduler.StepLR(
+        optimizer,
+        step_size=change_after,
+        gamma=1 / float(lr_step)
+    )
+
+    print("🔧 Initializing Optimizer:")
+    print(f"   • Type         : {optim_name.upper()}")
+    print(f"   • Learning Rate: {optim_lr}")
+    print(f"   • Momentum     : {optim_momentum if optim_name in ['sgd', 'rmsprop'] else 'N/A'}")
+    print(f"   • LR Decay     : Step every {change_after} epochs by factor 1/{lr_step} ≈ {round(1/float(lr_step), 4)}")
+
+    return optimizer, scheduler
+

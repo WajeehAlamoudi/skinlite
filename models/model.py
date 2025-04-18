@@ -1,9 +1,9 @@
 import torchvision
 from torch import nn
-import config
+from torchinfo import summary
 
 
-def build_model(arch, num_classes, trainable_layers, pretrained):
+def build_model(arch, num_classes, input_size, trainable_layers, pretrained):
 
     if arch == "mobilenetv2":
         base = torchvision.models.mobilenet_v2(pretrained=pretrained).features
@@ -29,5 +29,7 @@ def build_model(arch, num_classes, trainable_layers, pretrained):
         nn.Dropout(0.4),
         nn.Linear(256, num_classes)
     )
+
+    summary(model,input_size=(1, 3, input_size,input_size))
 
     return model

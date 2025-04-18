@@ -18,7 +18,7 @@ val_dataset = ISICDataset(set_state='val', output_size=config.run_config['IMAGE_
 
 # 🔸 Step 2.1: show sample
 original_image, transformed_image, label = train_dataset.__getitem__(7)
-print(val_dataset.__len__())
+print(f'val dataset samples: {train_dataset.__len__()}')
 # Save both
 original_save_path = os.path.join(run_dir, f"original_label{label}.jpg")
 transformed_save_path = os.path.join(run_dir, f"transformed_label{label}.jpg")
@@ -27,22 +27,27 @@ to_pil_image(transformed_image).save(transformed_save_path)
 print(f"✅ Saved original to:     {original_save_path}")
 print(f"✅ Saved transformed to: {transformed_save_path}")
 
-#🔸 Step 3: Initialize model
+
+# 🔸 Step 3: Initialize model
 model = build_model(
     arch=config.run_config['MODEL_ARCH'],
+    input_size=config.run_config['IMAGE_SIZE'],
     num_classes=config.run_config['NUM_CLASSES'],
     trainable_layers=config.run_config['TRAINABLE_LAYERS'],
     pretrained=config.run_config['PRE_TRAINED']
 )
 
-#🔸 Step 4: Optimizer and loss
-optimizer = get_optimizer(
+
+# 🔸 Step 4: Optimizer and Scheduler
+optimizer, scheduler = get_optimizer(
     optim_params=model.parameters(),
     optim_name=config.run_config['OPTI_NAME'],
     optim_lr=config.run_config['OPTI_LR'],
-    optim_momentum=config.run_config['OPTI_MOMENTUM']
-
+    optim_momentum=config.run_config['OPTI_MOMENTUM'],
+    change_after=config.run_config['LOWER_LR_AFTER'],
+    lr_step=config.run_config['LR_STEP']
 )
+
 # criterion = CrossEntropyLoss()
 
 # 🔸 Step 5: Setup device

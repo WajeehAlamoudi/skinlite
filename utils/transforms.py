@@ -43,7 +43,11 @@ def custom_transform(output_size):
         transforms.ColorJitter(saturation=(0.9, 1.1)),
 
         transforms.ToTensor(),
-        ColorConstancyTransform(power=6, gamma=1.2)
+        ColorConstancyTransform(power=6, gamma=1.2),
+
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
+
     ]
 
     return transforms.Compose(transform_list)

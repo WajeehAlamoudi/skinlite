@@ -2,17 +2,17 @@ from utils.helpers import Nadam
 from torch.optim import Adam, RMSprop, SGD, lr_scheduler
 
 
-def get_optimizer(optim_params, optim_name, optim_lr, optim_momentum, change_after, lr_step):
+def get_optimizer(optim_params, optim_name, optim_lr, optim_momentum, change_after, lr_step, weight_decay):
     optim_name = optim_name.lower()
 
     if optim_name == 'adam':
-        optimizer = Adam(optim_params, lr=optim_lr)
+        optimizer = Adam(optim_params, lr=optim_lr, weight_decay=weight_decay)
 
     elif optim_name == 'sgd':
-        optimizer = SGD(optim_params, lr=optim_lr, momentum=optim_momentum)
+        optimizer = SGD(optim_params, lr=optim_lr, momentum=optim_momentum, weight_decay=weight_decay)
 
     elif optim_name == 'rmsprop':
-        optimizer = RMSprop(optim_params, lr=optim_lr, momentum=optim_momentum)
+        optimizer = RMSprop(optim_params, lr=optim_lr, momentum=optim_momentum, weight_decay=weight_decay)
 
     elif optim_name == 'nadam':
         optimizer = Nadam(optim_params, lr=optim_lr)

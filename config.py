@@ -35,9 +35,10 @@ run_config = {
     "OPTI_MOMENTUM": 0.99,
     "LOWER_LR_AFTER": 7,
     "LR_STEP": 10,
+    "WEIGHT_DECAY": 0.0001,
 
     # === Train ===
-    "EPOCH": 1,
+    "EPOCH": 50,
 
 }
 

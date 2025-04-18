@@ -43,7 +43,8 @@ optimizer, scheduler = get_optimizer(
     optim_lr=config.run_config['OPTI_LR'],
     optim_momentum=config.run_config['OPTI_MOMENTUM'],
     change_after=config.run_config['LOWER_LR_AFTER'],
-    lr_step=config.run_config['LR_STEP']
+    lr_step=config.run_config['LR_STEP'],
+    weight_decay=config.run_config['WEIGHT_DECAY']
 )
 
 

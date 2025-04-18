@@ -24,12 +24,21 @@ def build_model(arch, num_classes, input_size, trainable_layers, pretrained):
         base,
         nn.AdaptiveAvgPool2d(1),
         nn.Flatten(),
+        nn.Linear(base[-1].out_channels, num_classes)
+    )
+
+    summary(model, input_size=(1, 3, input_size, input_size))
+
+    return model
+
+"""
+    model = nn.Sequential(
+        base,
+        nn.AdaptiveAvgPool2d(1),
+        nn.Flatten(),
         nn.Linear(base[-1].out_channels, 256),
         nn.ReLU(),
         nn.Dropout(0.4),
         nn.Linear(256, num_classes)
     )
-
-    summary(model,input_size=(1, 3, input_size,input_size))
-
-    return model
+"""

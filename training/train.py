@@ -1,3 +1,6 @@
+import torch
+from torch import nn
+
 import config
 from data.isic_loader import ISICDataset
 import os
@@ -50,10 +53,10 @@ optimizer, scheduler = get_optimizer(
 
 # criterion = CrossEntropyLoss()
 
-# 🔸 Step 5: Setup device
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# model.to(device)
-
+# 🔸 Step 5: Setup device and loss function
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
+criterion = nn.CrossEntropyLoss()
 # 🔸 Step 6: Optionally save config to run_dir
 # import yaml
 # with open(os.path.join(run_dir, "config.yaml"), "w") as f:

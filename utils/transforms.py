@@ -1,6 +1,8 @@
+import torch
 from torchvision import transforms
 import random
 import torchvision.transforms.functional as F
+
 
 class ColorConstancyTransform:
     def __init__(self, power=6, gamma=1.2):
@@ -28,6 +30,26 @@ class RandomFIXEDRotation:
         return F.rotate(img, angle)
 
 
+class AddGaussianNoiseToRandomPixels:
+    def __init__(self, noise_prob=0.05, mean=0.0, std=0.1):
+        """
+        noise_prob: float [0, 1], fraction of pixels to apply noise to
+        mean: mean of Gaussian noise
+        std: standard deviation of Gaussian noise
+        """
+        self.noise_prob = noise_prob
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        # Create a noise mask with True for pixels to be noised
+        noise_mask = torch.rand_like(tensor) < self.noise_prob
+        # Generate noise
+        noise = torch.randn_like(tensor) * self.std + self.mean
+        # Apply noise only where mask is True
+        return tensor + noise * noise_mask
+
+
 def custom_transform(output_size):
     long_side = int(output_size * 1.25)
 
@@ -46,6 +68,8 @@ def custom_transform(output_size):
         transforms.ToTensor(),
         ColorConstancyTransform(power=6, gamma=1.2),
 
+        AddGaussianNoiseToRandomPixels(),
+
         transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
@@ -59,6 +83,9 @@ def simple_transform(output_size):
     return transforms.Compose([
         transforms.Resize((output_size, int(output_size * 1.25))),
         transforms.CenterCrop((output_size, output_size)),
-        RandomFIXEDRotation(),
-        transforms.ToTensor()
+
+        transforms.ToTensor(),
+        ColorConstancyTransform(power=6, gamma=1.2),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
     ])

@@ -39,8 +39,8 @@ class CustomLoss(nn.Module):
             ce_loss = ce_loss * weight_per_sample
 
         # === Step 4: Final reduction ===
-        if self.reduction == 'mean':
+        if self.loss_reduction == 'mean':
             return ce_loss.mean()
-        elif self.reduction == 'sum':
+        elif self.loss_reduction == 'sum':
             return ce_loss.sum()
         return ce_loss  # no reduction

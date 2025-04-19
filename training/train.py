@@ -7,6 +7,7 @@ import config
 from data.isic_loader import ISICDataset
 import os
 from utils.helpers import setup_run_folder
+from utils.loss_functions import CustomLoss
 from models.model import build_model
 from models.optimizer import get_optimizer
 
@@ -48,7 +49,15 @@ optimizer, scheduler = get_optimizer(
 # 🔸 Step 5: Setup device and loss function
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
-criterion = nn.CrossEntropyLoss()
+
+criterion = CustomLoss(
+    loss_name=config.run_config['LOSS_FUN'],
+    class_weights=,
+    alpha=config.run_config['LOSS_ALPHA'],
+    gamma=config.run_config['LOSS_GAMMA'],
+    loss_reduction=config.run_config['LOSS_REDUCTION'],
+)
+
 # 5.1 retrieve train config
 num_epochs = config.run_config['EPOCH']
 patience = config.run_config['PATIENCE']
@@ -70,7 +79,7 @@ for epoch in range(num_epochs):
 
         optimizer.zero_grad()
         outputs = model(images)
-        loss = criterion(outputs, labels)
+        loss = criterion.forward(outputs, labels)
         loss.backward()
         optimizer.step()
 

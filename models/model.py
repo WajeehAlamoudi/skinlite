@@ -12,7 +12,7 @@ def build_model(arch, num_classes, input_size, trainable_layers, pretrained):
     elif arch == "efficientnet_b0":
         backbone_model = torchvision.models.efficientnet_b0(pretrained=pretrained)
         base = backbone_model.features
-        in_features = backbone_model.last_channel
+        in_features = backbone_model.classifier[1].in_features
 
     elif arch == "shufflenet_v2_x1_0":
         backbone_model = torchvision.models.shufflenet_v2_x1_0(pretrained=pretrained)

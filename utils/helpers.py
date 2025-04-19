@@ -46,7 +46,7 @@ def setup_run_folder(base_dir, run_config):
     # Save config to YAML
     yaml_path = os.path.join(run_dir, "config.yaml")
     with open(yaml_path, 'w') as f:
-        yaml.dump(run_config, f)
+        yaml.safe_dump(safe_config, f)
 
     # Prepare CSV log file
     csv_log_path = os.path.join(run_dir, f"log_{run_name}.csv")

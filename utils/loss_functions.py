@@ -23,8 +23,10 @@ class CustomLoss(nn.Module):
         # === Step 2: Focal Loss Modulation (optional) ===
         if self.loss_name == 'focal':
             pt = torch.exp(-ce_loss)
+
             if isinstance(self.alpha, torch.Tensor):
-                alpha_t = self.alpha[targets]  # Get alpha value for each sample
+                alpha = self.alpha.to(targets.device)
+                alpha_t = alpha[targets]  # Get alpha value for each sample
             else:
                 alpha_t = self.alpha  # scalar fallback
 

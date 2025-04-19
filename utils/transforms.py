@@ -35,8 +35,8 @@ def custom_transform(output_size):
         transforms.Resize((output_size, long_side)),
         transforms.CenterCrop((output_size, output_size)),
 
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(p=0.3),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
         RandomFIXEDRotation(),
 
         transforms.ColorJitter(brightness=(0.8, 1.1)),
@@ -46,6 +46,7 @@ def custom_transform(output_size):
         transforms.ToTensor(),
         ColorConstancyTransform(power=6, gamma=1.2),
 
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
 

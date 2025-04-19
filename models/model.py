@@ -5,14 +5,24 @@ from torchinfo import summary
 
 def build_model(arch, num_classes, input_size, trainable_layers, pretrained):
     if arch == "mobilenetv2":
-        base = torchvision.models.mobilenet_v2(pretrained=pretrained).features
+        backbone_model = torchvision.models.mobilenet_v2(pretrained=pretrained)
+        base = backbone_model.features
+        in_features = backbone_model.last_channel
+
     elif arch == "efficientnet_b0":
-        base = torchvision.models.efficientnet_b0(pretrained=pretrained).features
+        backbone_model = torchvision.models.efficientnet_b0(pretrained=pretrained)
+        base = backbone_model.features
+        in_features = backbone_model.last_channel
+
     elif arch == "shufflenet_v2_x1_0":
-        base = torchvision.models.shufflenet_v2_x1_0(pretrained=pretrained).features
+        backbone_model = torchvision.models.shufflenet_v2_x1_0(pretrained=pretrained)
+        base = backbone_model.features
+        in_features = backbone_model.last_channel
+
     else:
         raise ValueError("Unsupported architecture")
 
+    # === Freeze All, Then Unfreeze Last N ===
     if pretrained:
         for param in base.parameters():
             param.requires_grad = False
@@ -27,12 +37,10 @@ def build_model(arch, num_classes, input_size, trainable_layers, pretrained):
         base,
         nn.AdaptiveAvgPool2d(1),
         nn.Flatten(),
-        nn.Dropout(0.6),
-        nn.Linear(base[-1].out_channels, 256),
+        nn.Linear(in_features, 120),
+        nn.BatchNorm1d(120),
         nn.ReLU(),
-        nn.BatchNorm1d(256),
-        nn.Dropout(0.5),
-        nn.Linear(256, num_classes)
+        nn.Linear(120, num_classes),
     )
 
     summary(model, input_size=(1, 3, input_size, input_size))

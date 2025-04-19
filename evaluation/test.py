@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from data.isic_loader import ISICDataset
 from models.model import build_model
 
+
 def load_test_config(config_path):
     """
     Load only valid test-related entries from config.yaml, skipping unserializable ones.
@@ -36,6 +37,7 @@ def load_test_config(config_path):
         'MODEL_ARCH': cfg['MODEL_ARCH'],
         'TRAINABLE_LAYERS': 0  # always frozen during test
     }
+
 
 def test_model(head_dir):
     config_path = os.path.join(head_dir, 'config.yaml')

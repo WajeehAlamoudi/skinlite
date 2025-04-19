@@ -35,6 +35,14 @@ def setup_run_folder(base_dir, run_config):
     run_dir = os.path.join(base_dir, "runs", run_name)
     os.makedirs(run_dir, exist_ok=True)
 
+    # Convert torch.Tensor values to lists for YAML compatibility
+    safe_config = {}
+    for k, v in run_config.items():
+        if isinstance(v, torch.Tensor):
+            safe_config[k] = v.tolist()
+        else:
+            safe_config[k] = v
+
     # Save config to YAML
     yaml_path = os.path.join(run_dir, "config.yaml")
     with open(yaml_path, 'w') as f:

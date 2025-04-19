@@ -1,9 +1,8 @@
-import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from collections import Counter
 import config
-from utils.helpers import load_labeled_paths, seed_worker
+from utils.helpers import load_labeled_paths, seed_worker, compute_soft_class_weights
 from utils.transforms import custom_transform, simple_transform
 
 
@@ -47,12 +46,17 @@ class ISICDataset(Dataset):
 
     def get_loader(self, batch_size, num_workers):
         if self.set_state == 'train':
-            class_counts = Counter(self.label_paths)
-            class_weights = {cls: 1.0 / count for cls, count in class_counts.items()}
+            #class_counts = Counter(self.label_paths)
+            #class_weights = {cls: 1.0 / count for cls, count in class_counts.items()}
+            class_weights = compute_soft_class_weights(
+                labels=self.label_paths,
+                num_classes=config.run_config['NUM_CLASSES'],
+                smoothing=0.99  # 0 -> 1/frq, 0.999 -> weak balnce
+            )
             sample_weights = [class_weights[label] for label in self.label_paths]
 
             sampler = WeightedRandomSampler(
-                sample_weights,
+                weights=sample_weights,
                 num_samples=len(sample_weights),
                 replacement=True
             )
@@ -62,7 +66,7 @@ class ISICDataset(Dataset):
                 self,
                 batch_size=batch_size,
                 sampler=sampler,
-                shuffle=shuffle,
+                shuffle=False,
                 num_workers=num_workers,
                 worker_init_fn=seed_worker
             )

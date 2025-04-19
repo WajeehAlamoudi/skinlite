@@ -100,5 +100,5 @@ def test_model(head_dir):
 
 # Example usage
 if __name__ == "__main__":
-    head_dir = r"C:\Users\wajee\Downloads\run_20250419_1147"  # Replace with your path
+    head_dir = r"C:\Users\wajee\Downloads\run_2"  # Replace with your path
     test_model(head_dir)

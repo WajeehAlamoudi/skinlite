@@ -69,6 +69,21 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
+def compute_soft_class_weights(labels, num_classes, smoothing=0.99):
+    from collections import Counter
+    counts = Counter(labels)
+    total = len(labels)
+    weights = []
+
+    for i in range(num_classes):
+        freq = counts.get(i, 1) / total
+        weight = 1.0 / (np.log(smoothing + freq))  # log smoothing
+        weights.append(weight)
+
+    weights = torch.tensor(weights, dtype=torch.float32)
+    return weights / weights.sum()  # normalize for stability
+
+
 class Nadam(torch.optim.Optimizer):
     """Implements Nadam algorithm (a variant of Adam based on Nesterov momentum).
 

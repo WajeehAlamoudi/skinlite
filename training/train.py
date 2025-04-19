@@ -114,7 +114,7 @@ for epoch in range(num_epochs):
         print("✅ Best model saved!")
     else:
         patience_counter += 1
-
+        print(f"‼️No improvement in val_accuracy for {patience_counter}")
     # Early stopping
     if patience_counter >= patience:
         print(f"⚠️ Early stopping triggered after {epoch + 1} epochs")

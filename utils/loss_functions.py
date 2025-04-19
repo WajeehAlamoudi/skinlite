@@ -10,7 +10,7 @@ class CustomLoss(nn.Module):
         self.class_weights = class_weights  # should be tensor [num_classes]
         self.alpha = alpha
         self.gamma = gamma
-        self.loss_reduction = loss_reduction.lower
+        self.loss_reduction = loss_reduction.lower()
 
     def forward(self, outputs, targets):
         """

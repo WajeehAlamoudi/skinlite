@@ -23,7 +23,12 @@ class CustomLoss(nn.Module):
         # === Step 2: Focal Loss Modulation (optional) ===
         if self.loss_name == 'focal':
             pt = torch.exp(-ce_loss)
-            ce_loss = self.alpha * ((1 - pt) ** self.gamma) * ce_loss
+            if isinstance(self.alpha, torch.Tensor):
+                alpha_t = self.alpha[targets]  # Get alpha value for each sample
+            else:
+                alpha_t = self.alpha  # scalar fallback
+
+            ce_loss = alpha_t * ((1 - pt) ** self.gamma) * ce_loss
 
         # === Step 3: Class-Weight-Based Adjustment (optional) ===
         if self.loss_name == 'class_weight' and self.class_weights is not None:

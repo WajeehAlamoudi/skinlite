@@ -21,12 +21,12 @@ run_config = {
     # ==== Dataset loader ====
     "IMAGE_SIZE": 224,
     "NUM_CLASSES": 7,
-    "BATCH_SIZE": 16,
+    "BATCH_SIZE": 32,
     "NUM_WORKERS": 8,
 
     # ==== CNN model ====
     "MODEL_ARCH": "mobilenetv2",
-    "TRAINABLE_LAYERS": 30,
+    "TRAINABLE_LAYERS": 15,
     "PRE_TRAINED": True,
 
     # ==== Optimizer ====

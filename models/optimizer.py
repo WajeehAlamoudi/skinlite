@@ -1,5 +1,5 @@
 from utils.helpers import Nadam
-from torch.optim import Adam, RMSprop, SGD, lr_scheduler
+from torch.optim import Adam, RMSprop, SGD, AdamW, lr_scheduler
 
 
 def get_optimizer(optim_params, optim_name, optim_lr, optim_momentum, change_after, lr_step, weight_decay):
@@ -16,6 +16,9 @@ def get_optimizer(optim_params, optim_name, optim_lr, optim_momentum, change_aft
 
     elif optim_name == 'nadam':
         optimizer = Nadam(optim_params, lr=optim_lr)
+
+    elif optim_name == 'adamw':
+        optimizer = AdamW(optim_params, lr=optim_lr)
 
     else:
         raise ValueError(f"❌ Unknown optimizer: {optim_name}")
@@ -35,3 +38,10 @@ def get_optimizer(optim_params, optim_name, optim_lr, optim_momentum, change_aft
 
     return optimizer, scheduler
 
+
+"""
+optim.SGD([
+                {'params': model.base.named_parameters(), 'lr': 1e-2},
+                {'params': model.classifier.named_parameters()}
+            ], lr=1e-3, momentum=0.9)
+"""

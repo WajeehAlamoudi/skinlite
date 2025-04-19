@@ -27,10 +27,11 @@ def build_model(arch, num_classes, input_size, trainable_layers, pretrained):
         base,
         nn.AdaptiveAvgPool2d(1),
         nn.Flatten(),
-        nn.Dropout(0.5),
+        nn.Dropout(0.6),
         nn.Linear(base[-1].out_channels, 256),
         nn.ReLU(),
-        nn.Dropout(0.4),
+        nn.BatchNorm1d(256),
+        nn.Dropout(0.5),
         nn.Linear(256, num_classes)
     )
 
@@ -40,6 +41,7 @@ def build_model(arch, num_classes, input_size, trainable_layers, pretrained):
 
 
 """
+# in_features = model.classifier[1].in_features
     model = nn.Sequential(
         base,
         nn.AdaptiveAvgPool2d(1),

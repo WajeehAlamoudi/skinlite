@@ -13,7 +13,6 @@ from models.optimizer import get_optimizer
 # 🔸 Step 1: Create a run folder
 run_dir, log_csv_path = setup_run_folder(config.BASE_DIR, config.run_config)
 
-
 # 🔸 Step 2: Load dataset
 train_dataset = ISICDataset(set_state='train', output_size=config.run_config['IMAGE_SIZE'])
 val_dataset = ISICDataset(set_state='val', output_size=config.run_config['IMAGE_SIZE'])
@@ -35,7 +34,6 @@ model = build_model(
     pretrained=config.run_config['PRE_TRAINED']
 )
 
-
 # 🔸 Step 4: Optimizer and Scheduler
 optimizer, scheduler = get_optimizer(
     optim_params=model.parameters(),
@@ -47,18 +45,22 @@ optimizer, scheduler = get_optimizer(
     weight_decay=config.run_config['WEIGHT_DECAY']
 )
 
-
 # 🔸 Step 5: Setup device and loss function
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 criterion = nn.CrossEntropyLoss()
-
+# 5.1 retrieve train config
 num_epochs = config.run_config['EPOCH']
+patience = config.run_config['PATIENCE']
+
 best_val_accuracy = 0.0
+patience_counter = 0
+
 
 # 🔸 Step 6: Train
+print("✅ Training setup complete. Beginning training...")
 for epoch in range(num_epochs):
-    print(f"\n🔁 Epoch {epoch+1}/{num_epochs}")
+    print(f"\n🔁 Epoch {epoch + 1}/{num_epochs}")
 
     # === Train ===
     model.train()
@@ -108,7 +110,15 @@ for epoch in range(num_epochs):
     if val_accuracy > best_val_accuracy:
         best_val_accuracy = val_accuracy
         torch.save(model.state_dict(), os.path.join(run_dir, "best_model.pth"))
+        patience_counter = 0
         print("✅ Best model saved!")
+    else:
+        patience_counter += 1
 
-# Ready to train
-print("✅ Training setup complete. Ready to begin training.")
+    # Early stopping
+    if patience_counter >= patience:
+        print(f"⚠️ Early stopping triggered after {epoch + 1} epochs")
+        break
+
+# train finishes
+print(f"✅ Training completed! Best validation accuracy {best_val_accuracy:.4f}")

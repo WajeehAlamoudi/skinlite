@@ -2,7 +2,8 @@ import os
 import torch
 import yaml
 from torch.utils.data import DataLoader
-
+from sklearn.metrics import confusion_matrix, classification_report
+import pandas as pd
 from data.isic_loader import ISICDataset
 from models.model import build_model
 
@@ -50,7 +51,7 @@ def test_model(head_dir):
     config = load_test_config(config_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Dataset
+    # Dataset & loader
     test_dataset = ISICDataset(set_state='test', output_size=config['IMAGE_SIZE'])
     test_loader = DataLoader(test_dataset, batch_size=config['BATCH_SIZE'], num_workers=config['NUM_WORKERS'])
 
@@ -59,25 +60,42 @@ def test_model(head_dir):
         arch=config['MODEL_ARCH'],
         input_size=config['IMAGE_SIZE'],
         num_classes=config['NUM_CLASSES'],
-        trainable_layers=config['TRAINABLE_LAYERS'],  # 0 during testing
+        trainable_layers=config['TRAINABLE_LAYERS'],
         pretrained=False
     )
     model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model.to(device)
     model.eval()
 
-    # Evaluation
     total, correct = 0, 0
+    all_preds = []
+    all_labels = []
+
     with torch.no_grad():
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             preds = outputs.argmax(dim=1)
+
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+
             correct += (preds == labels).sum().item()
             total += labels.size(0)
 
+    accuracy = correct / total
+
+    # 📊 Metrics
     print(f"\n📂 Head Directory: {head_dir}")
-    print(f"🧪 Test Accuracy: {correct / total:.4f}")
+    print(f"🎯 Test Accuracy: {accuracy:.4f}")
+    print("\n📋 Classification Report:")
+    print(classification_report(all_labels, all_preds, target_names=[
+        "MEL", "NV", "BCC", "AKIEC", "BKL", "DF", "VASC"
+    ], digits=4))
+
+    print("\n🧮 Confusion Matrix:")
+    print(confusion_matrix(all_labels, all_preds))
+
 
 
 # Example usage

@@ -4,13 +4,13 @@ import torch
 
 # ===================== PATHS ==================
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-DATASET_PATH = r"C:\Users\wajee\PycharmProjects\Derma-Classification\dataset"
-
-# BASE_DIR = "/content/skinlite"
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 #
-# DATASET_PATH = "/content/drive/MyDrive/dataset"
+# DATASET_PATH = r"C:\Users\wajee\PycharmProjects\Derma-Classification\dataset"
+
+BASE_DIR = "/content/skinlite"
+
+DATASET_PATH = "/content/drive/MyDrive/dataset"
 
 TRAIN_IMG_DIR = os.path.join(DATASET_PATH, "images/train")
 TEST_IMG_DIR = os.path.join(DATASET_PATH, "images/test")

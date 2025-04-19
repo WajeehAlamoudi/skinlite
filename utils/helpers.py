@@ -16,16 +16,14 @@ def load_labeled_paths(train_img_dir, train_labels_dir):
     return df['filepath'].tolist(), df['label'].tolist()
 
 
-def compute_class_weights(labels, num_classes):
+def compute_class_weights(dataset, num_classes, device=None):
+    labels = dataset.label_paths  # already a list of integer class IDs
     class_counts = Counter(labels)
-    total_samples = len(labels)
+    total = len(labels)
 
-    class_weights = {
-        i: total_samples / (num_classes * class_counts.get(i, 1))  # avoid division by 0
-        for i in range(num_classes)
-    }
+    weights = [total / (num_classes * class_counts.get(i, 1)) for i in range(num_classes)]
+    return torch.tensor(weights, dtype=torch.float32, device=device)
 
-    return class_weights
 
 
 def setup_run_folder(base_dir, run_config):

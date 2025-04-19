@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from collections import Counter
 import torch
@@ -5,6 +6,8 @@ import os
 import yaml
 import csv
 from datetime import datetime
+import config
+import random
 
 
 def load_labeled_paths(train_img_dir, train_labels_dir):
@@ -23,7 +26,6 @@ def compute_class_weights(dataset, num_classes, device=None):
 
     weights = [total / (num_classes * class_counts.get(i, 1)) for i in range(num_classes)]
     return torch.tensor(weights, dtype=torch.float32, device=device)
-
 
 
 def setup_run_folder(base_dir, run_config):
@@ -59,6 +61,12 @@ def setup_run_folder(base_dir, run_config):
     print(f"📊 Log CSV initialized:    {csv_log_path}")
 
     return run_dir, csv_log_path
+
+
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2 ** 32  # 2^32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 
 class Nadam(torch.optim.Optimizer):
@@ -146,6 +154,3 @@ class Nadam(torch.optim.Optimizer):
                 p.data.addcdiv_(-group['lr'] * momentum_cache_t_1 / (1. - m_schedule_next), exp_avg, denom)
 
         return loss
-
-
-

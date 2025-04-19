@@ -54,23 +54,25 @@ def custom_transform(output_size):
     long_side = int(output_size * 1.25)
 
     transform_list = [
+        # 1. resize + square crop
         transforms.Resize((output_size, long_side)),
         transforms.CenterCrop((output_size, output_size)),
-
+        # 2. Geometric transformations
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomVerticalFlip(p=0.5),
         RandomFIXEDRotation(),
-
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+        # 3. Color/intensity transformations (applied to PIL images)
         transforms.ColorJitter(brightness=(0.8, 1.1)),
         transforms.ColorJitter(contrast=(0.8, 1.1)),
         transforms.ColorJitter(saturation=(0.8, 1.1)),
 
+        # 5. Tensor-based operations
         transforms.ToTensor(),
         ColorConstancyTransform(power=6, gamma=1.2),
-
         AddGaussianNoiseToRandomPixels(),
 
-        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+        # 6. Normalization always comes last
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
 
@@ -81,11 +83,13 @@ def custom_transform(output_size):
 
 def simple_transform(output_size):
     return transforms.Compose([
+        # 1. resize + square crop
         transforms.Resize((output_size, int(output_size * 1.25))),
         transforms.CenterCrop((output_size, output_size)),
-
+        # 2. Tensor-based operations
         transforms.ToTensor(),
         ColorConstancyTransform(power=6, gamma=1.2),
+        # 3. Normalization always comes last
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
     ])

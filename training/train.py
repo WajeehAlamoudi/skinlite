@@ -1,5 +1,6 @@
 import csv
 
+import numpy as np
 import torch
 
 import config
@@ -74,12 +75,27 @@ for epoch in range(num_epochs):
     model.train()
     train_loss, train_correct = 0.0, 0
     for images, labels in train_loader:
-        images, labels = images.to(device), labels.to(device)
 
+        images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
-        outputs = model(images)
-        loss = criterion.forward(outputs, labels)
+
+        if config.run_config['MIX_UP']:
+            # Implement mixup
+            lam = np.random.beta(config.run_config['MIXUP_ALPHA'],
+                                 config.run_config['MIXUP_ALPHA'])
+            batch_size = images.size()[0]
+            index = torch.randperm(batch_size).to(device)
+
+            # Mix images
+            mixed_images = lam * images + (1 - lam) * images[index, :]
+            outputs = model(mixed_images)
+            loss = lam * criterion(outputs, labels) + (1 - lam) * criterion(outputs, labels[index])
+        else:
+            outputs = model(images)
+            loss = criterion.forward(outputs, labels)
+
         loss.backward()
+        # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         train_loss += loss.item() * images.size(0)

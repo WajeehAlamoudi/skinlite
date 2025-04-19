@@ -32,7 +32,7 @@ run_config = {
 
     # ==== CNN model ====
     "MODEL_ARCH": "mobilenetv2",    # efficientnet_b0, shufflenet_v2_x1_0
-    "TRAINABLE_LAYERS": 15,
+    "TRAINABLE_LAYERS": 7,
     "PRE_TRAINED": True,
 
     # ==== Optimizer ====

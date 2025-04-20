@@ -51,7 +51,7 @@ class ISICDataset(Dataset):
             class_weights = compute_soft_class_weights(
                 labels=self.label_paths,
                 num_classes=config.run_config['NUM_CLASSES'],
-                smoothing=0.99  # 0 -> 1/frq, 0.999 -> weak balnce
+                smoothing=0  # 0 -> 1/frq, 0.999 -> weak balance
             )
             sample_weights = [class_weights[label] for label in self.label_paths]
 
@@ -60,7 +60,6 @@ class ISICDataset(Dataset):
                 num_samples=len(sample_weights),
                 replacement=True
             )
-            shuffle = False if sampler is not None else self.shuffle
 
             return DataLoader(
                 self,

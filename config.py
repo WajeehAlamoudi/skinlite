@@ -32,13 +32,13 @@ run_config = {
 
     # ==== CNN model ====
     "MODEL_ARCH": "mobilenetv2",  # efficientnet_b0, shufflenet_v2_x1_0
-    "TRAINABLE_LAYERS": 15,
+    "TRAINABLE_LAYERS": 7,
     "PRE_TRAINED": True,
 
     # ==== Optimizer ====
     "OPTI_NAME": 'adamw',  # adam, sgd, rmsprop, nadam
     "OPTI_LR": 1e-5,
-    "OPTI_MOMENTUM": 0.9,
+    "OPTI_MOMENTUM": 0.95,
     "LOWER_LR_AFTER": 10,
     "LR_STEP": 5,
     "WEIGHT_DECAY": 0.001,
@@ -46,7 +46,7 @@ run_config = {
     # === Train ===
     "EPOCH": 100,
     "PATIENCE": 12,
-    "LOSS_FUN": 'class_weight',  # focal
+    "LOSS_FUN": 'focal',  # class_weight
     "LOSS_GAMMA": 2,    # not use with class_weight
     "LOSS_ALPHA": torch.tensor([0.2, 0.03, 0.25, 0.35, 0.2, 0.9, 1.0]),  # not use with class_weight
     "LOSS_REDUCTION": 'mean',  # sum

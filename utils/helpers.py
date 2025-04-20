@@ -1,3 +1,5 @@
+import shutil
+
 import numpy as np
 import pandas as pd
 from collections import Counter
@@ -56,7 +58,16 @@ def setup_run_folder(base_dir, run_config):
         writer = csv.writer(csvfile)
         writer.writerow(["epoch", "train_loss", "train_acc", "val_loss", "val_acc"])
 
+    # save model
+    model_source_path = os.path.join(base_dir, "models", "model.py")
+    model_target_path = os.path.join(run_dir, "model.py")
+    if os.path.exists(model_source_path):
+        shutil.copy(model_source_path, model_target_path)
+    else:
+        print("⚠️ model.py not found at expected path.")
+
     print(f"📁 Run directory created: {run_dir}")
+    print(f"📄 model.py copied to:     {model_target_path}")
     print(f"📄 Config saved to:        {yaml_path}")
     print(f"📊 Log CSV initialized:    {csv_log_path}")
 
@@ -77,7 +88,7 @@ def compute_soft_class_weights(labels, num_classes, smoothing=0.99):
 
     for i in range(num_classes):
         freq = counts.get(i, 1) / total
-        weight = 1.0 / (np.log(smoothing + freq))  # log smoothing
+        weight = 1.0 / np.log(max(smoothing + freq, 1.0001))  # log smoothing
         weights.append(weight)
 
     weights = torch.tensor(weights, dtype=torch.float32)

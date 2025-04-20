@@ -6,7 +6,7 @@ import torch
 import config
 from data.isic_loader import ISICDataset
 import os
-from utils.helpers import setup_run_folder, compute_class_weights
+from utils.helpers import setup_run_folder, compute_soft_class_weights
 from utils.loss_functions import CustomLoss
 from models.model import build_model
 from models.optimizer import get_optimizer
@@ -52,10 +52,14 @@ model.to(device)
 
 criterion = CustomLoss(
     loss_name=config.run_config['LOSS_FUN'],
-    class_weights=compute_class_weights(train_dataset, config.run_config['NUM_CLASSES'], device=device),
+    class_weights=compute_soft_class_weights(
+        labels=train_dataset.label_paths,
+        num_classes=config.run_config['NUM_CLASSES'],
+        smoothing=0.99
+    ),
     alpha=config.run_config['LOSS_ALPHA'],
     gamma=config.run_config['LOSS_GAMMA'],
-    loss_reduction=config.run_config['LOSS_REDUCTION'],
+    loss_reduction=config.run_config['LOSS_REDUCTION']
 )
 
 # 5.1 retrieve train config

@@ -4,13 +4,13 @@ import torch
 
 # ===================== PATHS ==================
 
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DATASET_PATH = r"C:\Users\wajee\PycharmProjects\Derma-Classification\dataset"
+
+# BASE_DIR = "/content/skinlite"
 #
-# DATASET_PATH = r"C:\Users\wajee\PycharmProjects\Derma-Classification\dataset"
-
-BASE_DIR = "/content/skinlite"
-
-DATASET_PATH = "/content/drive/MyDrive/dataset"
+# DATASET_PATH = "/content/drive/MyDrive/dataset"
 
 TRAIN_IMG_DIR = os.path.join(DATASET_PATH, "images/train")
 TEST_IMG_DIR = os.path.join(DATASET_PATH, "images/test")
@@ -46,7 +46,7 @@ run_config = {
     # === Train ===
     "EPOCH": 100,
     "PATIENCE": 12,
-    "LOSS_FUN": 'focal',  # class_weight
+    "LOSS_FUN": 'class_weight',  # focal, cross_entropy
     "LOSS_GAMMA": 2,    # not use with class_weight
     "LOSS_ALPHA": torch.tensor([0.2, 0.03, 0.25, 0.35, 0.2, 0.9, 1.0]),  # not use with class_weight
     "LOSS_REDUCTION": 'mean',  # sum

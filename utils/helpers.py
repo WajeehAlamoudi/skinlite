@@ -21,13 +21,14 @@ def load_labeled_paths(train_img_dir, train_labels_dir):
     return df['filepath'].tolist(), df['label'].tolist()
 
 
-def compute_class_weights(dataset, num_classes, device=None):
-    labels = dataset.label_paths  # already a list of integer class IDs
-    class_counts = Counter(labels)
-    total = len(labels)
-
-    weights = [total / (num_classes * class_counts.get(i, 1)) for i in range(num_classes)]
-    return torch.tensor(weights, dtype=torch.float32, device=device)
+# def compute_class_weights(dataset, num_classes, device=None):
+#     labels = dataset.label_paths  # already a list of integer class IDs
+#     class_counts = Counter(labels)
+#     total = len(labels)
+#
+#     weights = [total / (num_classes * class_counts.get(i, 1)) for i in range(num_classes)]
+#     print(weights)
+#     return torch.tensor(weights, dtype=torch.float32, device=device)
 
 
 def setup_run_folder(base_dir, run_config):
@@ -80,7 +81,7 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def compute_soft_class_weights(labels, num_classes, smoothing=0.99):
+def compute_soft_class_weights(labels, num_classes, smoothing):
     from collections import Counter
     counts = Counter(labels)
     total = len(labels)
@@ -92,6 +93,7 @@ def compute_soft_class_weights(labels, num_classes, smoothing=0.99):
         weights.append(weight)
 
     weights = torch.tensor(weights, dtype=torch.float32)
+    print(weights)
     return weights / weights.sum()  # normalize for stability
 
 

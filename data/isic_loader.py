@@ -11,7 +11,6 @@ class ISICDataset(Dataset):
     def __init__(self, set_state, output_size):
         self.set_state = set_state.lower()
         self.output_size = output_size
-        self.shuffle = False
 
         if set_state == 'train':
             self.image_paths, self.label_paths = load_labeled_paths(config.TRAIN_IMG_DIR, config.TRAIN_LABELS_DIR)
@@ -46,26 +45,26 @@ class ISICDataset(Dataset):
 
     def get_loader(self, batch_size, num_workers):
         if self.set_state == 'train':
-            #class_counts = Counter(self.label_paths)
-            #class_weights = {cls: 1.0 / count for cls, count in class_counts.items()}
-            class_weights = compute_soft_class_weights(
-                labels=self.label_paths,
-                num_classes=config.run_config['NUM_CLASSES'],
-                smoothing=0  # 0 -> 1/frq, 0.999 -> weak balance
-            )
-            sample_weights = [class_weights[label] for label in self.label_paths]
+            # class_counts = Counter(self.label_paths)
+            # class_weights = {cls: 1.0 / count for cls, count in class_counts.items()}
 
-            sampler = WeightedRandomSampler(
-                weights=sample_weights,
-                num_samples=len(sample_weights),
-                replacement=True
-            )
+            # class_weights = compute_soft_class_weights(
+            #     labels=self.label_paths,
+            #     num_classes=config.run_config['NUM_CLASSES'],
+            #     smoothing=0.01  # 0 -> 1/frq, 0.999 -> weak balance
+            # )
+            # sample_weights = [class_weights[label] for label in self.label_paths]
+            # sampler = WeightedRandomSampler(
+            #     weights=sample_weights,
+            #     num_samples=len(sample_weights),
+            #     replacement=True
+            # )
 
             return DataLoader(
                 self,
                 batch_size=batch_size,
-                sampler=sampler,
-                shuffle=False,
+                # sampler=sampler,
+                shuffle=True,
                 num_workers=num_workers,
                 worker_init_fn=seed_worker
             )
@@ -74,7 +73,7 @@ class ISICDataset(Dataset):
             return DataLoader(
                 self,
                 batch_size=batch_size,
-                shuffle=self.shuffle,
+                shuffle=False,
                 num_workers=num_workers
             )
 

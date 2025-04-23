@@ -110,7 +110,7 @@ for epoch in range(num_epochs):
 
     train_accuracy = train_correct / len(train_loader.dataset)
     avg_train_loss = train_loss / len(train_loader.dataset)
-
+    os.system('nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader')
     # === Validate ===
     model.eval()
     val_loss, val_correct = 0.0, 0

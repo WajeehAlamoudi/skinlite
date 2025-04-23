@@ -49,7 +49,7 @@ optimizer, scheduler = get_optimizer(
 )
 
 # 🔸 Step 5: Setup device and loss function
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else None)
 model.to(device)
 
 criterion = CustomLoss(

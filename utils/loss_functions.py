@@ -3,70 +3,34 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class CustomLoss(nn.Module):
-    def __init__(self, loss_name, class_weights, alpha, gamma, loss_reduction):
-        super(CustomLoss, self).__init__()
-        self.loss_name = loss_name.lower()
-        self.class_weights = class_weights  # not used for capsule loss
-        self.alpha = alpha
-        self.gamma = gamma
-        self.loss_reduction = loss_reduction.lower()
-        print("🔹 Initializing Loss Fun:")
-        print(f"   • Type         : {self.loss_name.upper()}")
-        print(f"   • Class weight: {self.class_weights}")
-        print(f"   • Reduction     : {self.loss_reduction}")
+class CapsuleLoss(nn.Module):
+    def __init__(self, pos_class=0.9, neg_class=0.1, penalty=0.5, reduction='sum'):
+        super(CapsuleLoss, self).__init__()
+        self.pos_class = pos_class
+        self.neg_class = neg_class
+        self.penalty = penalty
+        self.reduction = reduction
+        self.reconstruction_loss = nn.MSELoss(reduction=self.reduction)
 
-    def forward(self, outputs, targets):
-        """
-        outputs: [B, num_classes, capsule_dim] for 'capsule_margin'
-                 OR [B, num_classes] for others
-        targets: class indices [B]
-        """
+    def forward(self, x, labels, images, reconstructions):
+        batch_size = x.size(0)
 
-        if self.loss_name == "capsule_margin":
-            return self.capsule_margin_loss(outputs, targets)
+        # Capsule vector lengths = class prediction confidences
+        v_c = torch.sqrt((x ** 2).sum(dim=2, keepdim=True))
 
-        # Convert class indices to logits-compatible flow
-        ce_loss = F.cross_entropy(outputs, targets, reduction='none')  # [B]
+        # Margin loss
+        left = F.relu(self.pos_class - v_c).view(batch_size, -1)
+        right = F.relu(v_c - self.neg_class).view(batch_size, -1)
+        margin_loss = labels * left + self.penalty * (1.0 - labels) * right
+        margin_loss = margin_loss.sum()
 
-        if self.loss_name == 'focal':
-            pt = torch.exp(-ce_loss)
-            if isinstance(self.alpha, torch.Tensor):
-                alpha = self.alpha.to(targets.device)
-                alpha_t = alpha[targets]
-            else:
-                alpha_t = self.alpha
-            ce_loss = alpha_t * ((1 - pt) ** self.gamma) * ce_loss
+        # Reconstruction loss
+        images = images.view(reconstructions.size(0), -1)
+        reconstruction_loss = self.reconstruction_loss(reconstructions, images)
 
-        elif self.loss_name == 'class_weight' and self.class_weights is not None:
-            probs = F.softmax(outputs, dim=1)
-            weight_per_sample = torch.sum(probs * self.class_weights.to(outputs.device), dim=1)
-            ce_loss = ce_loss * weight_per_sample
+        if self.reduction == 'sum':
+            total_loss = (margin_loss + 0.0005 * reconstruction_loss) / batch_size
+        else:  # assume mean
+            total_loss = margin_loss / batch_size + 0.0005 * reconstruction_loss
 
-
-        if self.loss_reduction == 'mean':
-            return ce_loss.mean()
-        elif self.loss_reduction == 'sum':
-            return ce_loss.sum()
-
-        return ce_loss
-
-    def capsule_margin_loss(self, capsule_output, targets, m_plus=0.9, m_minus=0.1, lambda_=0.5):
-        """
-        capsule_output: [B, num_classes, capsule_dim]
-        targets: [B] - class indices
-        """
-        v_lengths = torch.norm(capsule_output, dim=-1)  # [B, num_classes]
-        y_true = F.one_hot(targets, num_classes=v_lengths.size(1)).float()
-
-        left = F.relu(m_plus - v_lengths) ** 2
-        right = F.relu(v_lengths - m_minus) ** 2
-
-        loss = y_true * left + lambda_ * (1.0 - y_true) * right
-        loss = loss.sum(dim=1)  # per-sample total loss
-
-        if self.loss_reduction == 'mean':
-            return loss.mean()
-        elif self.loss_reduction == 'sum':
-            return loss.sum()
-        return loss  # [B]
+        return total_loss

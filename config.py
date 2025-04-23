@@ -48,14 +48,12 @@ run_config = {
     # === Train ===
     "EPOCH": 5,
     "PATIENCE": 5,
-    "MIX_UP": True,
-    "MIXUP_ALPHA": 0.2,
 
     # == Loss fun ==
-    "LOSS_FUN": 'capsule_margin',  # focal, cross_entropy, class_weight
-    "LOSS_GAMMA": None,  # not use with class_weight, cross_entropy
-    "LOSS_ALPHA": None,  # torch.tensor([0.2, 0.03, 0.25, 0.35, 0.2, 0.9, 1.0]) not use with class_weight, cross_entropy
-    "LOSS_REDUCTION": 'mean',  # sum
+    "LOSS_PENALTY": 0.5,
+    "LOSS_+_class": 0.9,
+    "LOSS_-_class": 0.1,
+    "LOSS_REDUCTION": 'sum',
 
 }
 """"

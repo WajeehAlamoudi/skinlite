@@ -78,7 +78,7 @@ def build_model(arch, num_classes, trainable_layers, pretrained,
             recon, class_preds = self.decoder(x)
             print("Reconstruction:", recon.shape)
             print("Class predictions:", class_preds.shape)
-            return x, recon, class_preds  # can also return logits
+            return x, recon, class_preds  # can also return logits = raw score
 
     summary(CapsuleNetModel())
     return CapsuleNetModel()

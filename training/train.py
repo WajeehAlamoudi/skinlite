@@ -6,10 +6,12 @@ import torch
 import config
 from data.isic_loader import ISICDataset
 import os
-from utils.helpers import setup_run_folder, compute_class_weights_from_labels
-from utils.loss_functions import CustomLoss
+from utils.helpers import setup_run_folder
+from utils.loss_functions import CapsuleLoss
 from models.model import build_model
 from models.optimizer import get_optimizer
+import torch.nn.functional as F
+
 
 # 🔸 Step 1: Create a run folder
 run_dir, log_csv_path = setup_run_folder(config.BASE_DIR, config.run_config)
@@ -29,7 +31,6 @@ val_loader = val_dataset.get_loader(
 # 🔸 Step 3: Initialize model
 model = build_model(
     arch=config.run_config['MODEL_ARCH'],
-    input_size=config.run_config['IMAGE_SIZE'],
     num_classes=config.run_config['NUM_CLASSES'],
     trainable_layers=config.run_config['TRAINABLE_LAYERS'],
     pretrained=config.run_config['PRE_TRAINED'],
@@ -52,15 +53,11 @@ optimizer, scheduler = get_optimizer(
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-criterion = CustomLoss(
-    loss_name=config.run_config['LOSS_FUN'],
-    class_weights=compute_class_weights_from_labels(
-        labels=train_dataset.label_paths,
-        num_classes=config.run_config['NUM_CLASSES']
-    ),
-    alpha=config.run_config['LOSS_ALPHA'],
-    gamma=config.run_config['LOSS_GAMMA'],
-    loss_reduction=config.run_config['LOSS_REDUCTION']
+criterion = CapsuleLoss(
+    pos_class=config.run_config['LOSS_+_class'],
+    neg_class=config.run_config['LOSS_-_class'],
+    penalty=config.run_config['LOSS_PENALTY'],
+    reduction=config.run_config['LOSS_REDUCTION']
 )
 
 # 5.1 retrieve train config
@@ -80,49 +77,41 @@ for epoch in range(num_epochs):
     model.train()
     train_loss, train_correct = 0.0, 0
     for images, labels in train_loader:
-
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
 
-        if config.run_config['MIX_UP']:
-            # Implement mixup
-            lam = np.random.beta(config.run_config['MIXUP_ALPHA'],
-                                 config.run_config['MIXUP_ALPHA'])
-            batch_size = images.size()[0]
-            index = torch.randperm(batch_size).to(device)
 
-            # Mix images
-            mixed_images = lam * images + (1 - lam) * images[index, :]
-            outputs = model(mixed_images)
-            loss = lam * criterion(outputs, labels) + (1 - lam) * criterion(outputs, labels[index])
-        else:
-            outputs = model(images)
-            loss = criterion.forward(outputs, labels)
+        caps_output, reconstructions, pred_y = model(images)
+        one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASS']).float()
+        loss = criterion(caps_output, one_hot_labels, images, reconstructions)
 
         loss.backward()
         # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         train_loss += loss.item() * images.size(0)
-        #train_correct += (outputs.argmax(1) == labels).sum().item()
-        train_preds = torch.norm(outputs, dim=-1).argmax(dim=1)
+        # train_correct += (outputs.argmax(1) == labels).sum().item()
+        train_preds = torch.norm(caps_output, dim=-1).argmax(dim=1)
         train_correct += (train_preds == labels).sum().item()
 
     train_accuracy = train_correct / len(train_loader.dataset)
     avg_train_loss = train_loss / len(train_loader.dataset)
     os.system('nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader')
+
     # === Validate ===
     model.eval()
     val_loss, val_correct = 0.0, 0
     with torch.no_grad():
         for images, labels in val_loader:
             images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            loss = criterion(outputs, labels)
+
+            caps_output, reconstructions, pred_y = model(images)
+            one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASS']).float()
+            loss = criterion(caps_output, one_hot_labels, images, reconstructions)
 
             val_loss += loss.item() * images.size(0)
-            #val_correct += (outputs.argmax(1) == labels).sum().item()
-            val_preds = torch.norm(outputs, dim=-1).argmax(dim=1)
+            # val_correct += (outputs.argmax(1) == labels).sum().item()
+            val_preds = torch.norm(caps_output, dim=-1).argmax(dim=1)
             val_correct += (val_preds == labels).sum().item()
 
     val_accuracy = val_correct / len(val_loader.dataset)

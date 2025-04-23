@@ -1,7 +1,7 @@
 import csv
 
 import torch
-
+from collections import Counter
 import config
 from data.isic_loader import ISICDataset
 import os
@@ -73,66 +73,78 @@ for epoch in range(num_epochs):
 
     # === Train ===
     model.train()
-    train_loss, train_correct = 0.0, 0
+    train_loss, train_correct, train_margin_loss, train_recon_loss = 0.0, 0, 0, 0
     for images, labels in train_loader:
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
 
         caps_output, reconstructions, pred_y = model(images)
         one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASSES']).float()
-        loss = criterion(caps_output, one_hot_labels, images, reconstructions)
+        margin_loss, recon_loss, loss = criterion(caps_output, one_hot_labels, images, reconstructions)
 
         loss.backward()
         # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
-        train_loss += loss.item() * images.size(0)
-        # train_correct += (outputs.argmax(1) == labels).sum().item()
+        train_margin_loss += margin_loss * images.size(0)
+        train_recon_loss += recon_loss * images.size(0)
+        train_loss += loss * images.size(0)  # train_correct += (outputs.argmax(1) == labels).sum().item()
         train_preds = torch.norm(caps_output, dim=-1).argmax(dim=1)
         train_preds = train_preds.squeeze(-1)
-        # print(f"BATCH SHAPE check → preds: {train_preds.shape}, labels: {labels.shape}")
-        # print(f"CORRECT this batch: {(train_preds == labels).sum().item()} / {labels.size(0)}")
 
         train_correct += (train_preds == labels).sum().item()
+
+    avg_train_loss = train_loss / len(train_loader.dataset)
+    avg_train_margin_loss = train_margin_loss / len(train_loader.dataset)
+    avg_train_recon_loss = train_recon_loss / len(train_loader.dataset)
 
     train_accuracy = train_correct / len(train_loader.dataset)
     print(f"DEBUG: train_correct = {train_correct}, total = {len(train_loader.dataset)}")
     print(f"DEBUG: raw accuracy = {train_correct / len(train_loader.dataset)}")
 
-    avg_train_loss = train_loss / len(train_loader.dataset)
     os.system('nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader')
 
     # === Validate ===
     model.eval()
-    val_loss, val_correct = 0.0, 0
+    val_loss, val_correct, val_margin_loss, val_recon_loss = 0.0, 0, 0, 0
     with torch.no_grad():
         for images, labels in val_loader:
             images, labels = images.to(device), labels.to(device)
 
             caps_output, reconstructions, pred_y = model(images)
             one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASSES']).float()
-            loss = criterion(caps_output, one_hot_labels, images, reconstructions)
+            margin_loss, recon_loss, loss = criterion(caps_output, one_hot_labels, images, reconstructions)
 
-            val_loss += loss.item() * images.size(0)
+            val_margin_loss += margin_loss * images.size(0)
+            val_recon_loss += recon_loss * images.size(0)
+            val_loss += loss * images.size(0)
             # val_correct += (outputs.argmax(1) == labels).sum().item()
             val_preds = torch.norm(caps_output, dim=-1).argmax(dim=1)
             val_preds = val_preds.squeeze(-1)
+            print("Pred class dist:", Counter(val_preds.cpu().numpy()))
 
             val_correct += (val_preds == labels).sum().item()
 
+        avg_val_loss = val_loss / len(val_loader.dataset)
+        avg_val_margin_loss = val_margin_loss / len(val_loader.dataset)
+        avg_val_recon_loss = val_recon_loss / len(val_loader.dataset)
+
     val_accuracy = val_correct / len(val_loader.dataset)
-    avg_val_loss = val_loss / len(val_loader.dataset)
 
     scheduler.step()
 
     # Log
     print(f"🧠 Train Loss: {avg_train_loss:.4f} | Accuracy: {train_accuracy:.4f}")
     print(f"🧪 Val   Loss: {avg_val_loss:.4f} | Accuracy: {val_accuracy:.4f}")
+    print(f"🔍 Margin Loss: Train={avg_train_margin_loss:.4f}, Val={avg_val_margin_loss:.4f}")
+    print(f"🎨 Recon Loss : Train={avg_train_recon_loss:.4f}, Val={avg_val_recon_loss:.4f}")
 
     # Write results to CSV
     with open(log_csv_path, 'a', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow([epoch + 1, avg_train_loss, train_accuracy, avg_val_loss, val_accuracy])
+        writer.writerow([epoch + 1, avg_train_loss, train_accuracy, avg_val_loss, val_accuracy
+                            , avg_train_margin_loss, avg_train_recon_loss,
+                         avg_val_margin_loss, avg_val_recon_loss])
 
     # Save best model
     if val_accuracy > best_val_accuracy:

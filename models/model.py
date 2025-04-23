@@ -77,12 +77,27 @@ def build_model(arch, num_classes, trainable_layers, pretrained,
             print(f"Input into {arch}:", x.shape)
             x = self.feature_extractor(x)
             print("After feature_extractor:", x.shape)
+
             x = self.primary_caps(x)
             print("After primary_caps:", x.shape)
-            x = self.digit_caps(x).squeeze(-1)
-            print("After digit_caps:", x.shape)
-            recon, class_preds = self.decoder(x)
+
+            x = self.digit_caps(x)
+            print("After digit_caps (pre-squeeze):", x.shape)
+
+            if x.shape[2] == 1:
+                x = x.squeeze(2)  # safely remove the 1-dim if it exists
+                print("After digit_caps (squeezed):", x.shape)
+
+            batch_size = x.size(0)
+            num_classes = x.size(1)
+            capsule_dim = x.size(2)
+
+            dummy_y = torch.eye(num_classes, device=x.device)[[0]].expand(batch_size, num_classes)
+
+            recon = self.decoder(x, dummy_y)
             print("Reconstruction:", recon.shape)
+
+            class_preds = x.norm(dim=-1)
             print("Class predictions:", class_preds.shape)
 
         def forward(self, x, y=None):

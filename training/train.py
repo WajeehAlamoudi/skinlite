@@ -88,7 +88,8 @@ for epoch in range(num_epochs):
 
         train_margin_loss += margin_loss * images.size(0)
         train_recon_loss += recon_loss * images.size(0)
-        train_loss += loss * images.size(0)  # train_correct += (outputs.argmax(1) == labels).sum().item()
+        train_loss += loss * images.size(0)
+        # train_correct += (outputs.argmax(1) == labels).sum().item()
         train_preds = torch.norm(caps_output, dim=-1).argmax(dim=1)
         train_preds = train_preds.squeeze(-1)
 
@@ -121,6 +122,7 @@ for epoch in range(num_epochs):
             # val_correct += (outputs.argmax(1) == labels).sum().item()
             val_preds = torch.norm(caps_output, dim=-1).argmax(dim=1)
             val_preds = val_preds.squeeze(-1)
+
             print("Pred class dist:", Counter(val_preds.cpu().numpy()))
 
             val_correct += (val_preds == labels).sum().item()

@@ -89,9 +89,16 @@ for epoch in range(num_epochs):
         train_loss += loss.item() * images.size(0)
         # train_correct += (outputs.argmax(1) == labels).sum().item()
         train_preds = torch.norm(caps_output, dim=-1).argmax(dim=1)
+        train_preds = train_preds.squeeze(-1)
+        # print(f"BATCH SHAPE check → preds: {train_preds.shape}, labels: {labels.shape}")
+        # print(f"CORRECT this batch: {(train_preds == labels).sum().item()} / {labels.size(0)}")
+
         train_correct += (train_preds == labels).sum().item()
 
     train_accuracy = train_correct / len(train_loader.dataset)
+    print(f"DEBUG: train_correct = {train_correct}, total = {len(train_loader.dataset)}")
+    print(f"DEBUG: raw accuracy = {train_correct / len(train_loader.dataset)}")
+
     avg_train_loss = train_loss / len(train_loader.dataset)
     os.system('nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader')
 
@@ -109,6 +116,8 @@ for epoch in range(num_epochs):
             val_loss += loss.item() * images.size(0)
             # val_correct += (outputs.argmax(1) == labels).sum().item()
             val_preds = torch.norm(caps_output, dim=-1).argmax(dim=1)
+            val_preds = val_preds.squeeze(-1)
+
             val_correct += (val_preds == labels).sum().item()
 
     val_accuracy = val_correct / len(val_loader.dataset)

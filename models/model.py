@@ -3,6 +3,7 @@ import torch.nn as nn
 import torchvision
 from torchinfo import summary
 
+import config
 from models.capsule_layers import PrimaryCaps, DigitCaps, Decoder
 
 
@@ -66,18 +67,28 @@ def build_model(arch, num_classes, trainable_layers, pretrained,
             self.primary_caps = primary_caps
             self.digit_caps = digit_caps
             self.decoder = decoder
+            # 🔸 Run a dummy forward pass to print all shapes once
+            dummy_input = torch.randn(1, 3, config.run_config['IMAGE_SIZE'], config.run_config['IMAGE_SIZE'])
+            with torch.no_grad():
+                self._print_model_shapes(dummy_input)
 
-        def forward(self, x):
+        def _print_model_shapes(self, x):
             print(f"Input into {arch}:", x.shape)
             x = self.feature_extractor(x)
             print("After feature_extractor:", x.shape)
             x = self.primary_caps(x)
             print("After primary_caps:", x.shape)
-            x = self.digit_caps(x).squeeze(-1)  # [B, num_classes, 16]
+            x = self.digit_caps(x).squeeze(-1)
             print("After digit_caps:", x.shape)
             recon, class_preds = self.decoder(x)
             print("Reconstruction:", recon.shape)
             print("Class predictions:", class_preds.shape)
+
+        def forward(self, x):
+            x = self.feature_extractor(x)
+            x = self.primary_caps(x)
+            x = self.digit_caps(x).squeeze(-1)  # [B, num_classes, 16]
+            recon, class_preds = self.decoder(x)
             return x, recon, class_preds  # can also return logits = raw score
 
     summary(CapsuleNetModel())

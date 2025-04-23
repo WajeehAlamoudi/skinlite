@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import config
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 1, 1280, 7, 7
@@ -94,7 +96,7 @@ class Decoder(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(hidden_dim, hidden_dim*2),
             nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim*2, 28*28),
+            nn.Linear(hidden_dim*2, 3*config.run_config['IMAGE_SIZE']*config.run_config['IMAGE_SIZE']),
             nn.Sigmoid()
         )
 

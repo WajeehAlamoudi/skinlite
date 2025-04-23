@@ -1,17 +1,15 @@
 import csv
 
-import numpy as np
 import torch
 
 import config
 from data.isic_loader import ISICDataset
 import os
-from utils.helpers import setup_run_folder
+from utils.helpers import setup_run_folder, compute_class_weights_from_labels
 from utils.loss_functions import CapsuleLoss
 from models.model import build_model
 from models.optimizer import get_optimizer
 import torch.nn.functional as F
-
 
 # 🔸 Step 1: Create a run folder
 run_dir, log_csv_path = setup_run_folder(config.BASE_DIR, config.run_config)
@@ -57,7 +55,8 @@ criterion = CapsuleLoss(
     pos_class=config.run_config['LOSS_+_class'],
     neg_class=config.run_config['LOSS_-_class'],
     penalty=config.run_config['LOSS_PENALTY'],
-    reduction=config.run_config['LOSS_REDUCTION']
+    reduction=config.run_config['LOSS_REDUCTION'],
+    class_weights=compute_class_weights_from_labels(train_dataset.label_paths, config.run_config['NUM_CLASSES'])
 )
 
 # 5.1 retrieve train config
@@ -66,7 +65,6 @@ patience = config.run_config['PATIENCE']
 
 best_val_accuracy = 0.0
 patience_counter = 0
-
 
 # 🔸 Step 6: Train
 print("✅ Training setup complete. Beginning training...")
@@ -80,9 +78,8 @@ for epoch in range(num_epochs):
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
 
-
         caps_output, reconstructions, pred_y = model(images)
-        one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASS']).float()
+        one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASSES']).float()
         loss = criterion(caps_output, one_hot_labels, images, reconstructions)
 
         loss.backward()
@@ -106,7 +103,7 @@ for epoch in range(num_epochs):
             images, labels = images.to(device), labels.to(device)
 
             caps_output, reconstructions, pred_y = model(images)
-            one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASS']).float()
+            one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASSES']).float()
             loss = criterion(caps_output, one_hot_labels, images, reconstructions)
 
             val_loss += loss.item() * images.size(0)

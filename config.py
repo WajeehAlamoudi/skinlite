@@ -32,10 +32,10 @@ run_config = {
 
     # ==== CNN model ====
     "MODEL_ARCH": "mobilenetv2",  # efficientnet_b0, shufflenet_v2_x1_0
-    "TRAINABLE_LAYERS": 7,
+    "TRAINABLE_LAYERS": 3,
     "PRE_TRAINED": True,
-    "PRIMARY_UNITS": 32,
-    "PRIMARY_UNIT_SIZE": 8,
+    "PRIMARY_UNITS": 8,
+    "PRIMARY_UNIT_SIZE": 32,
 
     # ==== Optimizer ====
     "OPTI_NAME": 'adamw',  # adam, sgd, rmsprop, nadam

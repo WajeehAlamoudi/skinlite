@@ -11,6 +11,10 @@ class CustomLoss(nn.Module):
         self.alpha = alpha
         self.gamma = gamma
         self.loss_reduction = loss_reduction.lower()
+        print("🔹 Initializing Loss Fun:")
+        print(f"   • Type         : {self.loss_name.upper()}")
+        print(f"   • Class weight: {self.class_weights}")
+        print(f"   • Reduction     : {self.loss_reduction}")
 
     def forward(self, outputs, targets):
         """
@@ -18,6 +22,7 @@ class CustomLoss(nn.Module):
                  OR [B, num_classes] for others
         targets: class indices [B]
         """
+
         if self.loss_name == "capsule_margin":
             return self.capsule_margin_loss(outputs, targets)
 
@@ -38,10 +43,12 @@ class CustomLoss(nn.Module):
             weight_per_sample = torch.sum(probs * self.class_weights.to(outputs.device), dim=1)
             ce_loss = ce_loss * weight_per_sample
 
+
         if self.loss_reduction == 'mean':
             return ce_loss.mean()
         elif self.loss_reduction == 'sum':
             return ce_loss.sum()
+
         return ce_loss
 
     def capsule_margin_loss(self, capsule_output, targets, m_plus=0.9, m_minus=0.1, lambda_=0.5):

@@ -97,7 +97,6 @@ def compute_class_weights_from_labels(labels, num_classes):
         weights.append(weight)
 
     weights = torch.tensor(weights, dtype=torch.float32)
-    print(weights / weights.sum())
     return weights / weights.sum()  # normalize for stability
 
 

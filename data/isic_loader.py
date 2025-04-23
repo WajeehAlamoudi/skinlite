@@ -2,8 +2,28 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from collections import Counter
 import config
-from utils.helpers import load_labeled_paths, seed_worker, compute_soft_class_weights
+from utils.helpers import load_labeled_paths, seed_worker, compute_class_weights_from_labels
 from utils.transforms import custom_transform, simple_transform
+
+# {'MEL': 0, 'NV': 1, 'BCC': 2, 'AKIEC': 3, 'BKL': 4, 'DF': 5, 'VASC': 6}
+# original_counts = {
+#     0: 1113,  # MEL
+#     1: 6705,  # NV
+#     2: 514,   # BCC
+#     3: 327,   # AKIEC
+#     4: 1099,  # BKL
+#     5: 115,   # DF
+#     6: 142    # VASC
+# }
+CLASS_MULTIPLIER = {
+    6: 8,  # VASC
+    5: 8,  # DF
+    4: 8,  # BKL
+    3: 4,  # AKIEC
+    2: 2,  # BCC
+    1: -2,  # NV
+    0: 2,  # MEL
+}
 
 
 # create a custom pytorch data loader
@@ -15,7 +35,38 @@ class ISICDataset(Dataset):
         if set_state == 'train':
             self.image_paths, self.label_paths = load_labeled_paths(config.TRAIN_IMG_DIR, config.TRAIN_LABELS_DIR)
             self.transform = custom_transform(output_size=self.output_size)
-            #print("[DEBUG] 111 Training transform applied:", self.transform)
+            # Expanded lists
+            expanded_imgs, expanded_labels = [], []
+            class_img_dict = {}
+
+            # Group by label first
+            for img_path, label in zip(self.image_paths, self.label_paths):
+                class_img_dict.setdefault(label, []).append(img_path)
+
+            # Expand or downsample
+            for label, paths in class_img_dict.items():
+                multiplier = CLASS_MULTIPLIER.get(label, 1)
+
+                if multiplier > 0:
+                    for path in paths:
+                        for _ in range(multiplier):
+                            expanded_imgs.append(path)
+                            expanded_labels.append(label)
+
+                elif multiplier < 0:
+                    keep_every = abs(multiplier)
+                    reduced = paths[::keep_every]  # keep 1 of every `abs(multiplier)`
+                    expanded_imgs.extend(reduced)
+                    expanded_labels.extend([label] * len(reduced))
+
+                elif multiplier == 0:
+                    # Keep the original images without duplication
+                    expanded_imgs.extend(paths)
+                    expanded_labels.extend([label] * len(paths))
+
+            self.image_paths = expanded_imgs
+            self.label_paths = expanded_labels
+            # print("[DEBUG] 111 Training transform applied:", self.transform)
 
         elif set_state == 'val':
             self.image_paths, self.label_paths = load_labeled_paths(config.VAL_IMG_DIR, config.VAL_LABELS_DIR)
@@ -34,11 +85,12 @@ class ISICDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.image_paths[idx]
         label = self.label_paths[idx]
+        image = Image.open(img_path).convert("RGB")
+
         # if self.transform is not None:
         # print(f"[DEBUG] 222 Transform applied on index {idx}")
         # else:
         # print(f"[WARNING] 333 No transform applied on index {idx}")
-        image = Image.open(img_path).convert("RGB")
 
         transformed_image = self.transform(image)
         return transformed_image, label
@@ -79,6 +131,7 @@ class ISICDataset(Dataset):
 
 
 """
+# raw class weight = class_weights = np.array(np.mean(Y_orig, axis = 0)).astype('float32')
 Class | Raw Count | After Sampler (Approx)
 NV | 6705 | 1428
 MEL | 1113 | 1432

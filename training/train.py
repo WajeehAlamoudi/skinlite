@@ -6,7 +6,7 @@ import torch
 import config
 from data.isic_loader import ISICDataset
 import os
-from utils.helpers import setup_run_folder, compute_soft_class_weights
+from utils.helpers import setup_run_folder, compute_class_weights_from_labels
 from utils.loss_functions import CustomLoss
 from models.model import build_model
 from models.optimizer import get_optimizer
@@ -32,7 +32,9 @@ model = build_model(
     input_size=config.run_config['IMAGE_SIZE'],
     num_classes=config.run_config['NUM_CLASSES'],
     trainable_layers=config.run_config['TRAINABLE_LAYERS'],
-    pretrained=config.run_config['PRE_TRAINED']
+    pretrained=config.run_config['PRE_TRAINED'],
+    num_primary_units=config.run_config['PRIMARY_UNITS'],
+    primary_unit_size=config.run_config['PRIMARY_UNIT_SIZE']
 )
 
 # 🔸 Step 4: Optimizer and Scheduler
@@ -52,10 +54,9 @@ model.to(device)
 
 criterion = CustomLoss(
     loss_name=config.run_config['LOSS_FUN'],
-    class_weights=compute_soft_class_weights(
+    class_weights=compute_class_weights_from_labels(
         labels=train_dataset.label_paths,
-        num_classes=config.run_config['NUM_CLASSES'],
-        smoothing=0.99
+        num_classes=config.run_config['NUM_CLASSES']
     ),
     alpha=config.run_config['LOSS_ALPHA'],
     gamma=config.run_config['LOSS_GAMMA'],
@@ -103,7 +104,9 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         train_loss += loss.item() * images.size(0)
-        train_correct += (outputs.argmax(1) == labels).sum().item()
+        #train_correct += (outputs.argmax(1) == labels).sum().item()
+        train_preds = torch.norm(outputs, dim=-1).argmax(dim=1)
+        train_correct += (train_preds == labels).sum().item()
 
     train_accuracy = train_correct / len(train_loader.dataset)
     avg_train_loss = train_loss / len(train_loader.dataset)
@@ -118,7 +121,9 @@ for epoch in range(num_epochs):
             loss = criterion(outputs, labels)
 
             val_loss += loss.item() * images.size(0)
-            val_correct += (outputs.argmax(1) == labels).sum().item()
+            #val_correct += (outputs.argmax(1) == labels).sum().item()
+            val_preds = torch.norm(outputs, dim=-1).argmax(dim=1)
+            val_correct += (val_preds == labels).sum().item()
 
     val_accuracy = val_correct / len(val_loader.dataset)
     avg_val_loss = val_loss / len(val_loader.dataset)

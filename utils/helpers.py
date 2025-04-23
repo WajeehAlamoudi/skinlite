@@ -81,19 +81,23 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def compute_soft_class_weights(labels, num_classes, smoothing):
-    from collections import Counter
+def compute_class_weights_from_labels(labels, num_classes):
+    """
+    Compute balanced class weights from a list of class labels.
+    Assumes labels is a list of integers.
+    Returns a normalized weight tensor (sum to 1).
+    """
     counts = Counter(labels)
-    total = len(labels)
-    weights = []
+    total = sum(counts.values())
 
+    weights = []
     for i in range(num_classes):
-        freq = counts.get(i, 1) / total
-        weight = 1.0 / np.log(max(smoothing + freq, 1.0001))  # log smoothing
+        freq = counts.get(i, 1) / total  # avoid division by zero
+        weight = 1.0 / freq
         weights.append(weight)
 
     weights = torch.tensor(weights, dtype=torch.float32)
-    print(weights)
+    print(weights / weights.sum())
     return weights / weights.sum()  # normalize for stability
 
 

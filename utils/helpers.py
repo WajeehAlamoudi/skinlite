@@ -57,17 +57,7 @@ def setup_run_folder(base_dir, run_config):
     csv_log_path = os.path.join(run_dir, f"log_{run_name}.csv")
     with open(csv_log_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([
-            "epoch",
-            "train_loss",
-            "train_acc",
-            "val_loss",
-            "val_acc",
-            "train_margin_loss",
-            "train_recon_loss",
-            "val_margin_loss",
-            "val_recon_loss"
-        ])
+        writer.writerow(["epoch", "train_loss", "train_acc", "val_loss", "val_acc"])
 
     # save model
     model_source_path = os.path.join(base_dir, "models", "model.py")

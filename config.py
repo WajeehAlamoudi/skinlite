@@ -4,13 +4,13 @@ import torch
 
 # ===================== PATHS ==================
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-DATASET_PATH = r"C:\Users\wajee\PycharmProjects\Derma-Classification\dataset"
-
-# BASE_DIR = "/content/skinlite"
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 #
-# DATASET_PATH = "/content/drive/MyDrive/dataset"
+# DATASET_PATH = r"C:\Users\wajee\PycharmProjects\Derma-Classification\dataset"
+
+BASE_DIR = "/content/skinlite"
+
+DATASET_PATH = "/content/drive/MyDrive/dataset"
 
 TRAIN_IMG_DIR = os.path.join(DATASET_PATH, "images/train")
 TEST_IMG_DIR = os.path.join(DATASET_PATH, "images/test")
@@ -28,7 +28,7 @@ run_config = {
     "IMAGE_SIZE": 224,
     "NUM_CLASSES": 7,
     "BATCH_SIZE": 16,
-    "NUM_WORKERS": 0,
+    "NUM_WORKERS": 8,
 
     # ==== CNN model ====
     "MODEL_ARCH": "mobilenetv2",  # efficientnet_b0, shufflenet_v2_x1_0
@@ -46,8 +46,8 @@ run_config = {
     "WEIGHT_DECAY": 1e-2,
 
     # === Train ===
-    "EPOCH": 1,
-    "PATIENCE": 1,
+    "EPOCH": 5,
+    "PATIENCE": 5,
     "MIX_UP": True,
     "MIXUP_ALPHA": 0.2,
 

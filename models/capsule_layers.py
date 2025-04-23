@@ -96,7 +96,7 @@ class Decoder(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(hidden_dim, hidden_dim*2),
             nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim*2, 3*config.run_config['IMAGE_SIZE']*244),
+            nn.Linear(hidden_dim*2, 3*config.run_config['IMAGE_SIZE']*config.run_config['IMAGE_SIZE']),
             nn.Sigmoid()
         )
 

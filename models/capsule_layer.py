@@ -35,12 +35,6 @@ class CapsuleLayer(nn.Module):
         return (mag_sq / (1.0 + mag_sq)) * (s / (mag + 1e-8))
 
     def forward(self, x):
-        device_info = x.device
-        if self.use_routing:
-            print(f"🚀 DigitCaps running on device: {device_info}")
-            return self.routing(x)
-        else:
-            print(f"🚀 PrimaryCaps running on device: {device_info}")
         return self.routing(x) if self.use_routing else self.no_routing(x)
 
     def no_routing(self, x):

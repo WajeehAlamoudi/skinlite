@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision
 from torchinfo import summary
+import torch.nn.functional as F
 
 import config
 from models.capsule_layers import PrimaryCaps, DigitCaps, Decoder
@@ -84,12 +85,17 @@ def build_model(arch, num_classes, trainable_layers, pretrained,
             print("Reconstruction:", recon.shape)
             print("Class predictions:", class_preds.shape)
 
-        def forward(self, x):
+        def forward(self, x, y=None):
             x = self.feature_extractor(x)
             x = self.primary_caps(x)
             x = self.digit_caps(x).squeeze(-1)  # [B, num_classes, 16]
-            recon, class_preds = self.decoder(x)
-            return x, recon, class_preds  # can also return logits = raw score
+            if y is None:
+                # If not provided (e.g., during inference), use prediction
+                class_preds = torch.norm(x, dim=-1)
+                pred = class_preds.argmax(dim=1)
+                y = F.one_hot(pred, num_classes=class_preds.size(1)).float()
+            recon = self.decoder(x, y)
+            return x, recon, y  # can also return logits = raw score
 
     summary(CapsuleNetModel())
     return CapsuleNetModel()

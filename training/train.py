@@ -78,8 +78,8 @@ for epoch in range(num_epochs):
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
 
-        caps_output, reconstructions, pred_y = model(images)
         one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASSES']).float()
+        caps_output, reconstructions, pred_y = model(images, y=one_hot_labels)
         margin_loss, recon_loss, loss = criterion(caps_output, one_hot_labels, images, reconstructions)
 
         loss.backward()
@@ -111,8 +111,8 @@ for epoch in range(num_epochs):
         for images, labels in val_loader:
             images, labels = images.to(device), labels.to(device)
 
-            caps_output, reconstructions, pred_y = model(images)
             one_hot_labels = F.one_hot(labels, num_classes=config.run_config['NUM_CLASSES']).float()
+            caps_output, reconstructions, pred_y = model(images)
             margin_loss, recon_loss, loss = criterion(caps_output, one_hot_labels, images, reconstructions)
 
             val_margin_loss += margin_loss * images.size(0)

@@ -100,22 +100,13 @@ class Decoder(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, x):
-        # Ensure x is [batch_size, num_classes, capsule_dim]
+    def forward(self, x, y):
         if x.dim() == 4 and x.size(2) == 1:
-            x = x.squeeze(2)  # removes the 1-dim, shape: [B, 7, 16]
-        # dynamic: keep last 2 dims
+            x = x.squeeze(2)
 
         batch_size, num_classes, capsule_dim = x.size()
 
-        # Class prediction via capsule vector norms
-        class_probs = (x ** 2).sum(dim=-1).sqrt()
-        _, max_length_indices = class_probs.max(dim=1)
-
-        # Create one-hot for class selection
-        y = torch.eye(num_classes, device=x.device)[max_length_indices]
-
-        # Mask only the winning class capsule
+        # Mask only the desired class capsule (y should be one-hot)
         x = x * y[:, :, None]
 
         # Flatten for MLP
@@ -124,7 +115,8 @@ class Decoder(nn.Module):
         # Pass through reconstruction layers
         reconstructed = self.lin_layers(flattened_x)
 
-        return reconstructed, y
+        return reconstructed
+
 
 
 

@@ -34,9 +34,9 @@ class CapsuleLoss(nn.Module):
         reconstruction_loss = self.reconstruction_loss(reconstructions, images)
 
         if self.reduction == 'sum':
-            total_loss = (margin_loss + 0.0005 * reconstruction_loss) / batch_size
+            total_loss = (margin_loss + 0.0001 * reconstruction_loss) / batch_size
         else:  # assume mean
-            total_loss = margin_loss / batch_size + 0.0005 * reconstruction_loss
+            total_loss = margin_loss / batch_size + 0.0001 * reconstruction_loss
 
         return total_loss
 

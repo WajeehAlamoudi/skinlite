@@ -47,7 +47,7 @@ run_config = {
 
     # === Train ===
     "EPOCH": 50,
-    "PATIENCE": 7,
+    "PATIENCE": 15,
 
     # == Loss fun ==
     "LOSS_PENALTY": 0.5,

@@ -96,17 +96,26 @@ class Decoder(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(hidden_dim, hidden_dim*2),
             nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim*2, 3*config.run_config['IMAGE_SIZE']*config.run_config['IMAGE_SIZE']),
+            nn.Linear(hidden_dim*2, 3*config.run_config['IMAGE_SIZE']*244),
             nn.Sigmoid()
         )
 
-    def forward(self, x, y):
+    def forward(self, x):
+        # Ensure x is [batch_size, num_classes, capsule_dim]
         if x.dim() == 4 and x.size(2) == 1:
-            x = x.squeeze(2)
+            x = x.squeeze(2)  # removes the 1-dim, shape: [B, 7, 16]
+        # dynamic: keep last 2 dims
 
         batch_size, num_classes, capsule_dim = x.size()
 
-        # Mask only the desired class capsule (y should be one-hot)
+        # Class prediction via capsule vector norms
+        class_probs = (x ** 2).sum(dim=-1).sqrt()
+        _, max_length_indices = class_probs.max(dim=1)
+
+        # Create one-hot for class selection
+        y = torch.eye(num_classes, device=x.device)[max_length_indices]
+
+        # Mask only the winning class capsule
         x = x * y[:, :, None]
 
         # Flatten for MLP
@@ -115,8 +124,7 @@ class Decoder(nn.Module):
         # Pass through reconstruction layers
         reconstructed = self.lin_layers(flattened_x)
 
-        return reconstructed
-
+        return reconstructed, y
 
 
 

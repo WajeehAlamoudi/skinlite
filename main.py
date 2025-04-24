@@ -19,6 +19,7 @@ VAL_LABELS_PATH = os.path.join(DATASET_PATH, "labels/ISIC2018_Task3_Validation_G
 CLASS_NAMES = ['MEL', 'NV', 'BCC', 'AKIEC', 'BKL', 'DF', 'VASC']
 LABEL_MAP = {name: idx for idx, name in enumerate(CLASS_NAMES)}
 
+
 # === Custom Dataset ===
 class ISICDataset(Dataset):
     def __init__(self, csv_path, img_dir, transform=None):
@@ -42,9 +43,10 @@ class ISICDataset(Dataset):
             image = self.transform(image)
         return image, label
 
+
 # === Capsule Components ===
 class PrimaryCaps(nn.Module):
-    def __init__(self, num_capsules=8, in_channels=256, out_channels=32, kernel_size=7, stride=2):
+    def __init__(self, num_capsules=8, in_channels=512, out_channels=32, kernel_size=7, stride=2):
         super().__init__()
         self.capsules = nn.ModuleList([
             nn.Conv2d(in_channels, out_channels, kernel_size, stride)
@@ -57,14 +59,18 @@ class PrimaryCaps(nn.Module):
         u = torch.cat(u, dim=-1)
         return self.squash(u)
 
-    def squash(self, x):
-        norm = torch.norm(x, dim=1, keepdim=True)
-        return (norm**2 / (1 + norm**2)) * (x / (norm + 1e-8))
+    def squash(self, x, dim=-1):
+        norm = torch.norm(x, dim=dim, keepdim=True)
+        scale = (norm ** 2) / (1 + norm ** 2)
+        return scale * x / (norm + 1e-7) * 3.0  # 🚀 Boost final vector
+
 
 class DigitCaps(nn.Module):
     def __init__(self, input_caps, input_dim, num_classes, output_dim=16, routing_iters=3):
         super().__init__()
-        self.W = nn.Parameter(torch.randn(1, input_caps, num_classes, output_dim, input_dim) * 0.01)
+        W = torch.empty(1, input_caps, num_classes, output_dim, input_dim)
+        nn.init.xavier_uniform_(W)  # 🧠 better distribution
+        self.W = nn.Parameter(W)
         self.routing_iters = routing_iters
         self.num_classes = num_classes
 
@@ -80,19 +86,22 @@ class DigitCaps(nn.Module):
             v_j = self.squash(s_j)
             if _ < self.routing_iters - 1:
                 b_ij = b_ij + (u_hat * v_j.unsqueeze(1)).sum(-1, keepdim=True)
+        print("DigitCaps norms:", torch.norm(v_j, dim=-1).mean().item())
         return v_j
 
-    def squash(self, x):
-        norm = torch.norm(x, dim=-1, keepdim=True)
-        return (norm**2 / (1 + norm**2)) * (x / (norm + 1e-8))
+    def squash(self, x, dim=-1):
+        norm = torch.norm(x, dim=dim, keepdim=True)
+        scale = (norm ** 2) / (1 + norm ** 2)
+        return scale * x / (norm + 1e-7) * 3.0  # 🚀 Boost final vector
+
 
 class CapsuleNet(nn.Module):
     def __init__(self, num_classes=7):
         super().__init__()
         mobilenet = models.mobilenet_v2(pretrained=True)
         self.backbone = nn.Sequential(*list(mobilenet.features.children()))
-        self.adapter = nn.Conv2d(1280, 256, kernel_size=1)
-        self.primary_caps = PrimaryCaps()
+        self.adapter = nn.Conv2d(1280, 512, kernel_size=1)
+        self.primary_caps = PrimaryCaps(in_channels=512)
 
         # Dynamically determine the number of input capsules
         with torch.no_grad():
@@ -106,10 +115,12 @@ class CapsuleNet(nn.Module):
     def forward(self, x):
         x = self.backbone(x)
         x = self.adapter(x)
+        x = F.relu(x)
         x = self.primary_caps(x)
         print("PrimaryCaps output shape:", x.shape)
         x = self.digit_caps(x)
         return x.norm(dim=-1)
+
 
 class CapsuleMarginLoss(nn.Module):
     def __init__(self, margin=0.4, downweight=0.5):
@@ -118,11 +129,25 @@ class CapsuleMarginLoss(nn.Module):
         self.downweight = downweight
 
     def forward(self, pred, labels):
+        # pred: [B, 7], labels: [B] (integer indices)
+        one_hot = F.one_hot(labels, num_classes=pred.size(1)).float()
+
+        # Margin loss
         left = F.relu(self.margin - pred) ** 2
         right = F.relu(pred - (1 - self.margin)) ** 2
-        one_hot = F.one_hot(labels, num_classes=pred.size(1)).float()
-        loss = one_hot * left + self.downweight * (1.0 - one_hot) * right
-        return loss.mean()
+
+        # Apply loss
+        loss = one_hot * left + self.downweight * (1 - one_hot) * right
+        loss = loss.sum(dim=1).mean()  # sum across classes, mean across batch
+
+        # Debug once every few steps
+        if torch.rand(1).item() < 0.1:
+            print("Mean pred norm:", pred.norm(dim=1).mean().item())
+            print("Sample true class scores:", pred[range(len(labels)), labels].detach().cpu().tolist())
+            print("Sample total loss:", loss.item())
+
+        return loss
+
 
 # === Config ===
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -156,6 +181,9 @@ for epoch in range(1, EPOCHS + 1):
     for images, labels in train_loader:
         images, labels = images.to(device), labels.to(device)
         outputs = model(images)
+        print("Output stats:", outputs.min().item(), outputs.max().item())
+        print("Labels (raw indices):", labels[:8].tolist())
+        print("Label example:", labels[0].item())
         loss = criterion(outputs, labels)
 
         optimizer.zero_grad()

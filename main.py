@@ -139,8 +139,8 @@ transform = transforms.Compose([
 
 train_set = ISICDataset(TRAIN_LABELS_PATH, TRAIN_IMG_DIR, transform=transform)
 val_set = ISICDataset(VAL_LABELS_PATH, VAL_IMG_DIR, transform=transform)
-train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)
-val_loader = DataLoader(val_set, batch_size=BATCH_SIZE, shuffle=False)
+train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
+val_loader = DataLoader(val_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=8)
 
 model = CapsuleNet().to(device)
 criterion = CapsuleMarginLoss()

@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from sklearn.metrics import f1_score
 from torch import nn
 from tqdm import tqdm
@@ -11,6 +15,7 @@ from torch.utils.data import DataLoader
 from utils import *
 
 if setting.model == "mobile":
+    print(f"♦️♦️start training a {setting.model} model♦️♦️")
     # 1. Load Data
     train_set = ISICDataset(
         csv_path=setting.TRAIN_LABELS_DIR,
@@ -95,6 +100,7 @@ if setting.model == "mobile":
         print(f"Train Loss: {avg_train_loss:.4f} | Train Acc: {train_acc:.2f}")
         print(f"Val Loss: {val_loss / val_total:.4f} | Val Acc: {val_acc:.2f} | Val F1: {val_f1:.4f}")
 if setting.model == "Hcaps":
+    print(f"♦️♦️start training a {setting.model} model♦️♦️")
     # 1. Load Data
     train_set = HCAPS_ISICDataset(
         csv_path=setting.TRAIN_LABELS_DIR,

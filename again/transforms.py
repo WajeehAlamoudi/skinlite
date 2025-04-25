@@ -48,7 +48,7 @@ class ColorConstancyTransform:
 
 
 train_transform = transforms.Compose([
-    transforms.Resize((setting.IMAGE_SIZE, setting.IMAGE_SIZE*1.25)),
+    transforms.Resize((setting.IMAGE_SIZE, int(setting.IMAGE_SIZE*1.25))),
     transforms.CenterCrop((setting.IMAGE_SIZE, setting.IMAGE_SIZE)),
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
@@ -61,7 +61,7 @@ train_transform = transforms.Compose([
 ])
 
 val_transform = transforms.Compose([
-    transforms.Resize((setting.IMAGE_SIZE, setting.IMAGE_SIZE*1.25)),
+    transforms.Resize((setting.IMAGE_SIZE, int(setting.IMAGE_SIZE*1.25))),
     transforms.CenterCrop((setting.IMAGE_SIZE, setting.IMAGE_SIZE)),
     transforms.ToTensor()
 ])

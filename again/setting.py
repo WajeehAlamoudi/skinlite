@@ -1,7 +1,6 @@
 import os
 import torch
 
-
 DATASET_PATH = "/content/drive/MyDrive/dataset"
 TRAIN_IMG_DIR = os.path.join(DATASET_PATH, "images/train")
 TEST_IMG_DIR = os.path.join(DATASET_PATH, "images/test")
@@ -22,7 +21,7 @@ CLASS_MULTIPLIER = {
     1: -2,  # NV (downsample)
     0: 3  # MEL
 }
-model = 'mobile' # , Hcaps
+model = 'mobile'  # , Hcaps
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IMAGE_SIZE = 224
 BATCH_SIZE = 32
@@ -34,9 +33,6 @@ EPOCHS = 5
 H_CLASSES_COUNT = [2, 3, 7]
 LAMBDA_RECON = 0.0005
 LEARNING_RATE = 1e-3
+PATIENCE = 15
 
 # ===================
-
-
-
-

@@ -14,7 +14,8 @@ from mobile.mobile_model import *
 from transforms import *
 from torch.utils.data import DataLoader
 from utils import *
-
+from datetime import datetime
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 if setting.model == "mobile":
     print(f"♦️♦️start training a {setting.model} model♦️♦️")
     # 1. Load Data
@@ -41,7 +42,8 @@ if setting.model == "mobile":
 
     EPOCHS = setting.EPOCHS
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": [], "val_f1": []}
-
+    early_stop_counter = 0
+    best_f1 = 0
     for epoch in range(1, EPOCHS + 1):
         model.train()
         running_loss, correct, total = 0.0, 0, 0
@@ -91,6 +93,22 @@ if setting.model == "mobile":
         val_acc = val_correct / val_total
         val_f1 = f1_score(val_labels, val_preds, average="macro")
 
+        if val_f1 > best_f1:
+            best_f1 = val_f1
+            early_stop_counter = 0
+            torch.save(model.state_dict(), f"best_{setting.model}_{timestamp}.pth")
+            print("✅ Model saved with improved F1:", round(best_f1, 4))
+        else:
+            early_stop_counter += 1
+            print(f"No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
+            if early_stop_counter >= setting.PATIENCE:
+                print("⛔️ Early stopping triggered.")
+                history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
+                with open(history_filename, 'wb') as f:
+                    pickle.dump(history, f)
+                print(f"♦️♦️history of {setting.model} model training saved by name {history_filename} ♦️♦️")
+                break
+
         # Save metrics
         history["train_loss"].append(avg_train_loss)
         history["train_acc"].append(train_acc)
@@ -102,7 +120,7 @@ if setting.model == "mobile":
         print(f"Val Loss: {val_loss / val_total:.4f} | Val Acc: {val_acc:.2f} | Val F1: {val_f1:.4f}")
 
     # Automatically choose name based on model type
-    history_filename = f"{setting.model.lower()}_history.pkl"
+    history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
     with open(history_filename, 'wb') as f:
         pickle.dump(history, f)
     print(f"♦️♦️history of {setting.model} model training saved by name {history_filename} ♦️♦️")
@@ -131,7 +149,8 @@ if setting.model == "Hcaps":
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=setting.LEARNING_RATE)
     EPOCHS = setting.EPOCHS
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": [], "val_f1": [], "gamma": []}
-
+    early_stop_counter = 0
+    best_f1 = 0
     # 3. Training Loop
     for epoch in range(1, EPOCHS + 1):
         model.train()
@@ -190,6 +209,22 @@ if setting.model == "Hcaps":
         val_accs = [c / val_total for c in val_corrects]
         val_f1_macro = f1_score(val_labels[2], val_preds[2], average='macro')
 
+        if val_f1_macro > best_f1:
+            best_f1 = val_f1_macro
+            early_stop_counter = 0
+            torch.save(model.state_dict(), f"best_{setting.model}_{timestamp}.pth")
+            print("✅ Model saved with improved F1:", round(best_f1, 4))
+        else:
+            early_stop_counter += 1
+            print(f"No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
+            if early_stop_counter >= setting.PATIENCE:
+                print("⛔️ Early stopping triggered.")
+                history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
+                with open(history_filename, 'wb') as f:
+                    pickle.dump(history, f)
+                print(f"♦️♦️history of {setting.model} model training saved by name {history_filename} ♦️♦️")
+                break
+
         # --- Logging ---
         history["train_loss"].append(avg_train_loss)
         history["val_loss"].append(avg_val_loss)
@@ -203,7 +238,7 @@ if setting.model == "Hcaps":
         print(f"γ weights: {gammas}")
 
     # Automatically choose name based on model type
-    history_filename = f"{setting.model.lower()}_history.pkl"
+    history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
     with open(history_filename, 'wb') as f:
         pickle.dump(history, f)
     print(f"♦️♦️history of {setting.model} model training saved by name {history_filename} ♦️♦️")

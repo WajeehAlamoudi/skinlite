@@ -32,7 +32,7 @@ if setting.model == "mobile":
     )
     val_loader = DataLoader(val_set, batch_size=setting.BATCH_SIZE, shuffle=False, num_workers=setting.NUM_WORKERS)
 
-    class_weights = compute_loader_class_weights(train_set)
+    class_weights = compute_loader_class_weights(train_set).to(setting.DEVICE)
     criterion = nn.CrossEntropyLoss(weight=class_weights)
     model = MobileNetClassifier(num_classes=setting.CLASSES_LEN).to(setting.DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=setting.LEARNING_RATE)

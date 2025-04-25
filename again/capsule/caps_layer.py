@@ -363,13 +363,14 @@ class HCapsNet(nn.Module):
 # ==== Loss fun ===
 
 
-def margin_loss(vectors, labels, class_weights=None, m_plus=0.9, m_minus=0.1, eta=0.5):
+def margin_loss(vectors, labels, m_plus=0.9, m_minus=0.1, eta=0.5, class_weights=None):
     """
     Computes margin loss L_M^j for one hierarchy level (j).
 
     Args:
         vectors: Tensor [B, num_classes, dim] → capsule output vectors
         labels:  Tensor [B]                   → class indices
+        :param class_weights:
     """
     # Compute vector norms: [B, num_classes]
     v_norm = torch.norm(vectors, dim=-1)
@@ -402,9 +403,9 @@ def dynamic_gamma(class_counts, accuracies, lambda_recon=0.0005):
 
 def classification_loss(digit1, digit2, digit3,label1, label2, label3,
                         gamma=[1/3, 1/3, 1/3],m_plus=0.9, m_minus=0.1, eta=0.5, class_weights=None):
-    L1 = margin_loss(digit1, label1, m_plus, m_minus, eta, class_weights)
-    L2 = margin_loss(digit2, label2, m_plus, m_minus, eta, class_weights)
-    L3 = margin_loss(digit3, label3, m_plus, m_minus, eta, class_weights)
+    L1 = margin_loss(digit1, label1, m_plus, m_minus, eta, class_weights=class_weights)
+    L2 = margin_loss(digit2, label2, m_plus, m_minus, eta, class_weights=class_weights)
+    L3 = margin_loss(digit3, label3, m_plus, m_minus, eta, class_weights=class_weights)
     LC = gamma[0]*L1 + gamma[1]*L2 + gamma[2]*L3
     return LC, (L1.item(), L2.item(), L3.item())
 

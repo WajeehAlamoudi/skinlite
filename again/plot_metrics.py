@@ -14,19 +14,17 @@ default_paths = {
     "Hcaps": "hcaps_history.pkl",
     "mobile": "mobile_history.pkl"
 }
-
 history_file = args.history_path or default_paths[args.model]
-
 if not os.path.exists(history_file):
     raise FileNotFoundError(f"History file not found: {history_file}")
 
 with open(history_file, "rb") as f:
     history = pickle.load(f)
 
-# === Plot shared metrics ===
+# === Loss Curve ===
 plt.figure(figsize=(10, 5))
 plt.plot(history["train_loss"], label="Train Loss")
-plt.plot(history["val_loss"], label="Validation Loss")
+plt.plot(history["val_loss"], label="Val Loss")
 plt.title(f"{args.model} - Loss per Epoch")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
@@ -35,10 +33,11 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 
-# === Plot model-specific metrics ===
+# === Accuracy and Specific Plots ===
 if args.model == "Hcaps":
-    # Val Acc per hierarchy
-    accs = list(zip(*history["val_acc"]))  # [[acc1s], [acc2s], [acc3s]]
+    accs = list(zip(*history["val_acc"]))  # unzipped: (acc1, acc2, acc3)
+
+    # Hierarchy Accuracy
     plt.figure(figsize=(10, 5))
     plt.plot(accs[0], label="Val Acc - Coarse")
     plt.plot(accs[1], label="Val Acc - Medium")
@@ -51,7 +50,7 @@ if args.model == "Hcaps":
     plt.tight_layout()
     plt.show()
 
-    # F1
+    # F1 Score (Fine)
     plt.figure(figsize=(10, 5))
     plt.plot(history["val_f1"], label="Val F1 - Fine")
     plt.title("Fine-Level Macro F1 per Epoch")
@@ -63,7 +62,7 @@ if args.model == "Hcaps":
     plt.show()
 
     # Gamma weights
-    gamma = list(zip(*history["gamma"]))  # γ1, γ2, γ3
+    gamma = list(zip(*history["gamma"]))
     plt.figure(figsize=(10, 5))
     plt.plot(gamma[0], label="γ1 (Coarse)")
     plt.plot(gamma[1], label="γ2 (Medium)")
@@ -77,10 +76,10 @@ if args.model == "Hcaps":
     plt.show()
 
 elif args.model == "mobile":
-    # Accuracy
+    # Accuracy Curve
     plt.figure(figsize=(10, 5))
     plt.plot(history["train_acc"], label="Train Accuracy")
-    plt.plot(history["val_acc"], label="Val Accuracy")
+    plt.plot(history["val_acc"], label="Validation Accuracy")
     plt.title("MobileNet Accuracy per Epoch")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
@@ -89,11 +88,11 @@ elif args.model == "mobile":
     plt.tight_layout()
     plt.show()
 
-    # F1 Score (if exists)
+    # Optional F1 Score
     if "val_f1" in history:
         plt.figure(figsize=(10, 5))
         plt.plot(history["val_f1"], label="Val F1 Score")
-        plt.title("MobileNet Macro F1 per Epoch")
+        plt.title("MobileNet Macro F1 Score per Epoch")
         plt.xlabel("Epoch")
         plt.ylabel("F1 Score")
         plt.legend()

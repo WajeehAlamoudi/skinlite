@@ -127,7 +127,7 @@ if setting.model == "Hcaps":
     model = HCapsNet().to(setting.DEVICE)
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=setting.LEARNING_RATE)
     EPOCHS = setting.EPOCHS
-    history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": [], "val_f1": []}
+    history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": [], "val_f1": [], "gamma": []}
 
     # 3. Training Loop
     for epoch in range(1, EPOCHS + 1):

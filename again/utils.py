@@ -1,7 +1,6 @@
 from collections import Counter
 import torch
 import setting
-import matplotlib.pyplot as plt
 
 
 def compute_loader_class_weights(dataset, num_classes=setting.CLASSES_LEN):

@@ -1,15 +1,14 @@
 from sklearn.metrics import f1_score
 from torch import nn
 from tqdm import tqdm
-
 import setting
-from again.capsule.caps_layer import HCapsNet, total_hcapsnet_loss, dynamic_gamma
-from again.mobile.mobile_data_loader import ISICDataset
-from again.capsule.Hcaps_data_loader import HCAPS_ISICDataset
-from again.mobile.mobile_model import MobileNetClassifier
-from again.transforms import *
+from capsule.caps_layer import *
+from capsule.Hcaps_data_loader import *
+from mobile.mobile_data_loader import *
+from mobile.mobile_model import *
+from transforms import *
 from torch.utils.data import DataLoader
-from again.utils import compute_loader_class_weights
+from utils import *
 
 if setting.model == "mobile":
     # 1. Load Data

@@ -96,7 +96,6 @@ if setting.model == "mobile":
         history["val_acc"].append(val_acc)
         history["val_f1"].append(val_f1)
 
-        print(f"Epoch {epoch}")
         print(f"Train Loss: {avg_train_loss:.4f} | Train Acc: {train_acc:.2f}")
         print(f"Val Loss: {val_loss / val_total:.4f} | Val Acc: {val_acc:.2f} | Val F1: {val_f1:.4f}")
 
@@ -196,7 +195,6 @@ if setting.model == "Hcaps":
         history["val_f1"].append(val_f1_macro)
         history["gamma"].append(gammas)
 
-        print(f"Epoch {epoch}")
         print(f"Train Loss: {avg_train_loss:.4f} | Acc1: {accs[0]:.2f}, Acc2: {accs[1]:.2f}, Acc3: {accs[2]:.2f}")
         print(f"Val Loss: {avg_val_loss:.4f} | Val Acc: {val_accs[2]:.2f} | Val F1 (fine): {val_f1_macro:.4f}")
         print(f"γ weights: {gammas}")

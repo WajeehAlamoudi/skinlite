@@ -2,6 +2,7 @@ import torch.nn as nn
 from torchvision import models
 import again.setting
 
+
 class MobileNetClassifier(nn.Module):
     def __init__(self, num_classes):
         super(MobileNetClassifier, self).__init__()
@@ -29,6 +30,3 @@ class MobileNetClassifier(nn.Module):
         x = self.pool(x)
         x = self.classifier(x)
         return x
-
-
-

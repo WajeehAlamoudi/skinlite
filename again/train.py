@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+import pickle
 from sklearn.metrics import f1_score
 from torch import nn
 from tqdm import tqdm
@@ -99,6 +99,12 @@ if setting.model == "mobile":
         print(f"Epoch {epoch}")
         print(f"Train Loss: {avg_train_loss:.4f} | Train Acc: {train_acc:.2f}")
         print(f"Val Loss: {val_loss / val_total:.4f} | Val Acc: {val_acc:.2f} | Val F1: {val_f1:.4f}")
+
+    # Automatically choose name based on model type
+    history_filename = f"{setting.model.lower()}_history.pkl"
+    with open(history_filename, 'wb') as f:
+        pickle.dump(history, f)
+
 if setting.model == "Hcaps":
     print(f"♦️♦️start training a {setting.model} model♦️♦️")
     # 1. Load Data
@@ -193,6 +199,11 @@ if setting.model == "Hcaps":
         print(f"Train Loss: {avg_train_loss:.4f} | Acc1: {accs[0]:.2f}, Acc2: {accs[1]:.2f}, Acc3: {accs[2]:.2f}")
         print(f"Val Loss: {avg_val_loss:.4f} | Val Acc: {val_accs[2]:.2f} | Val F1 (fine): {val_f1_macro:.4f}")
         print(f"γ weights: {gammas}")
+
+    # Automatically choose name based on model type
+    history_filename = f"{setting.model.lower()}_history.pkl"
+    with open(history_filename, 'wb') as f:
+        pickle.dump(history, f)
 
 if setting.model not in ["Hcaps", "mobile"]:
     print(f"The model {setting.model} is not supported, Check the setting file.")

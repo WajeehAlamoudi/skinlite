@@ -2,8 +2,7 @@ import os
 
 import torch
 
-DATASET_PATH = r"C:\Users\wajee\PycharmProjects\Derma-Classification\dataset"
-
+DATASET_PATH = "/content/drive/MyDrive/dataset"
 TRAIN_IMG_DIR = os.path.join(DATASET_PATH, "images/train")
 TEST_IMG_DIR = os.path.join(DATASET_PATH, "images/test")
 VAL_IMG_DIR = os.path.join(DATASET_PATH, "images/val")
@@ -23,7 +22,7 @@ CLASS_MULTIPLIER = {
     1: 0,  # NV (downsample)
     0: 0  # MEL
 }
-model = 'Hcaps'
+model = 'Hcaps' # mobile
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IMAGE_SIZE = 224
 BATCH_SIZE = 32

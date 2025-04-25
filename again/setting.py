@@ -14,13 +14,13 @@ VAL_LABELS_DIR = os.path.join(DATASET_PATH, "labels/ISIC2018_Task3_Validation_Gr
 # ===================
 CLASS_NAMES = ['MEL', 'NV', 'BCC', 'AKIEC', 'BKL', 'DF', 'VASC']
 CLASS_MULTIPLIER = {
-    6: 0,  # VASC
-    5: 0,  # DF
+    6: 5,  # VASC
+    5: 5,  # DF
     4: 0,  # BKL
-    3: 0,  # AKIEC
-    2: 0,  # BCC
-    1: 0,  # NV (downsample)
-    0: 0  # MEL
+    3: 3,  # AKIEC
+    2: 2,  # BCC
+    1: -2,  # NV (downsample)
+    0: 3  # MEL
 }
 model = 'mobile' # , Hcaps
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

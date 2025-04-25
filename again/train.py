@@ -1,5 +1,6 @@
 import sys
 import os
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pickle
 from sklearn.metrics import f1_score
@@ -23,7 +24,8 @@ if setting.model == "mobile":
         set_state='train',
         transform=train_transform
     )
-    train_loader = DataLoader(train_set, batch_size=setting.BATCH_SIZE, shuffle=setting.TRAIN_SHUFFLE, num_workers=setting.NUM_WORKERS)
+    train_loader = DataLoader(train_set, batch_size=setting.BATCH_SIZE, shuffle=setting.TRAIN_SHUFFLE,
+                              num_workers=setting.NUM_WORKERS)
     val_set = ISICDataset(
         csv_path=setting.VAL_LABELS_DIR,
         img_dir=setting.VAL_IMG_DIR,
@@ -114,7 +116,8 @@ if setting.model == "Hcaps":
         set_state='train',
         transform=train_transform
     )
-    train_loader = DataLoader(train_set, batch_size=setting.BATCH_SIZE, shuffle=setting.TRAIN_SHUFFLE, num_workers=setting.NUM_WORKERS)
+    train_loader = DataLoader(train_set, batch_size=setting.BATCH_SIZE, shuffle=setting.TRAIN_SHUFFLE,
+                              num_workers=setting.NUM_WORKERS)
     val_set = HCAPS_ISICDataset(
         csv_path=setting.VAL_LABELS_DIR,
         img_dir=setting.VAL_IMG_DIR,
@@ -142,7 +145,7 @@ if setting.model == "Hcaps":
 
             outputs = model(x)
             gamma = [1 / 3, 1 / 3, 1 / 3]  # initial default
-            loss, _, _, _ = total_hcapsnet_loss(outputs, labels, x, gamma, setting.LAMBDA_RECON)
+            loss, _, _, _ = total_hcapsnet_loss(outputs, labels, x, gamma, setting.LAMBDA_RECON, class_weights=None)
 
             optimizer.zero_grad()
             loss.backward()

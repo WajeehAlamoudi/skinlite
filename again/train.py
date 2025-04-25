@@ -104,6 +104,7 @@ if setting.model == "mobile":
     history_filename = f"{setting.model.lower()}_history.pkl"
     with open(history_filename, 'wb') as f:
         pickle.dump(history, f)
+    print(f"♦️♦️history of {setting.model} model training saved by name {history_filename} ♦️♦️")
 
 if setting.model == "Hcaps":
     print(f"♦️♦️start training a {setting.model} model♦️♦️")
@@ -204,6 +205,7 @@ if setting.model == "Hcaps":
     history_filename = f"{setting.model.lower()}_history.pkl"
     with open(history_filename, 'wb') as f:
         pickle.dump(history, f)
+    print(f"♦️♦️history of {setting.model} model training saved by name {history_filename} ♦️♦️")
 
 if setting.model not in ["Hcaps", "mobile"]:
     print(f"The model {setting.model} is not supported, Check the setting file.")

@@ -98,6 +98,7 @@ if setting.model == "mobile":
             best_f1 = val_f1
             early_stop_counter = 0
             torch.save(model.state_dict(), f"best_{setting.model}_{timestamp}.pth")
+            torch.save(model, f"entire_model_{setting.model}_{timestamp}.pt")
             print("✅ Model saved with improved F1:", round(best_f1, 4))
         else:
             early_stop_counter += 1
@@ -224,6 +225,7 @@ if setting.model == "Hcaps":
             best_f1 = val_f1_macro
             early_stop_counter = 0
             torch.save(model.state_dict(), f"best_{setting.model}_{timestamp}.pth")
+            torch.save(model, f"entire_model_{setting.model}_{timestamp}.pt")
             print("✅ Model saved with improved F1:", round(best_f1, 4))
         else:
             early_stop_counter += 1

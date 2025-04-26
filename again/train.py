@@ -165,6 +165,7 @@ if setting.model == "Hcaps":
         for param_group in optimizer.param_groups:
             param_group['lr'] = new_lr
         print(f"♦️ Epoch {epoch} - Learning Rate: {new_lr:.6f}")
+
         model.train()
         running_loss, corrects, total = 0, [0, 0, 0], 0
         preds_all, labels_all = [[], [], []], [[], [], []]

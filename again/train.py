@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader
 from utils import *
 from datetime import datetime
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
 if setting.model == "mobile":
     print(f"♦️♦️start training a {setting.model} model♦️♦️")
     # 1. Load Data
@@ -100,7 +101,7 @@ if setting.model == "mobile":
             print("✅ Model saved with improved F1:", round(best_f1, 4))
         else:
             early_stop_counter += 1
-            print(f"No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
+            print(f"♦️ No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
             if early_stop_counter >= setting.PATIENCE:
                 print("⛔️ Early stopping triggered.")
                 history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
@@ -119,11 +120,11 @@ if setting.model == "mobile":
         print(f"Train Loss: {avg_train_loss:.4f} | Train Acc: {train_acc:.2f}")
         print(f"Val Loss: {val_loss / val_total:.4f} | Val Acc: {val_acc:.2f} | Val F1: {val_f1:.4f}")
 
-    # Automatically choose name based on model type
-    history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
-    with open(history_filename, 'wb') as f:
-        pickle.dump(history, f)
-    print(f"♦️♦️history of {setting.model} model training saved by name {history_filename} ♦️♦️")
+        # Automatically choose name based on model type
+        history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
+        with open(history_filename, 'wb') as f:
+            pickle.dump(history, f)
+    print(f"♦️♦️ history of training {setting.model} model saved♦️♦️")
 
 if setting.model == "Hcaps":
     print(f"♦️♦️start training a {setting.model} model♦️♦️")
@@ -153,6 +154,16 @@ if setting.model == "Hcaps":
     best_f1 = 0
     # 3. Training Loop
     for epoch in range(1, EPOCHS + 1):
+
+        # === Update learning rate with exponential decay ===
+        if epoch > setting.KAPPA:
+            new_lr = setting.LEARNING_RATE * (setting.BETA ** (epoch - setting.KAPPA))
+        else:
+            new_lr = setting.LEARNING_RATE
+        # Apply the new learning rate to the optimizer
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = new_lr
+        print(f"♦️ Epoch {epoch} - Learning Rate: {new_lr:.6f}")
         model.train()
         running_loss, corrects, total = 0, [0, 0, 0], 0
         preds_all, labels_all = [[], [], []], [[], [], []]
@@ -216,7 +227,7 @@ if setting.model == "Hcaps":
             print("✅ Model saved with improved F1:", round(best_f1, 4))
         else:
             early_stop_counter += 1
-            print(f"No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
+            print(f"♦️ No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
             if early_stop_counter >= setting.PATIENCE:
                 print("⛔️ Early stopping triggered.")
                 history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
@@ -237,11 +248,12 @@ if setting.model == "Hcaps":
         print(f"Val Loss: {avg_val_loss:.4f} | Val Acc: {val_accs[2]:.2f} | Val F1 (fine): {val_f1_macro:.4f}")
         print(f"γ weights: {gammas}")
 
-    # Automatically choose name based on model type
-    history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
-    with open(history_filename, 'wb') as f:
-        pickle.dump(history, f)
-    print(f"♦️♦️history of {setting.model} model training saved by name {history_filename} ♦️♦️")
+        # Automatically choose name based on model type
+        history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
+        with open(history_filename, 'wb') as f:
+            pickle.dump(history, f)
+
+    print(f"♦️♦️ history of training {setting.model} model saved♦️♦️")
 
 if setting.model not in ["Hcaps", "mobile"]:
     print(f"The model {setting.model} is not supported, Check the setting file.")

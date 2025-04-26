@@ -46,6 +46,17 @@ if setting.model == "mobile":
     early_stop_counter = 0
     best_f1 = 0
     for epoch in range(1, EPOCHS + 1):
+
+        # === Update learning rate with exponential decay ===
+        if epoch > setting.KAPPA:
+            new_lr = setting.LEARNING_RATE * (setting.BETA ** (epoch - setting.KAPPA))
+        else:
+            new_lr = setting.LEARNING_RATE
+        # Apply the new learning rate to the optimizer
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = new_lr
+        print(f"🔄️ Epoch {epoch} - Learning Rate: {new_lr:.6f}")
+
         model.train()
         running_loss, correct, total = 0.0, 0, 0
         preds_all, labels_all = [], []

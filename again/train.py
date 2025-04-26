@@ -102,7 +102,7 @@ if setting.model == "mobile":
             print("✅ Model saved with improved F1:", round(best_f1, 4))
         else:
             early_stop_counter += 1
-            print(f"♦️ No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
+            print(f"⚠️ No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
             if early_stop_counter >= setting.PATIENCE:
                 print("⛔️ Early stopping triggered.")
                 history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"
@@ -164,7 +164,7 @@ if setting.model == "Hcaps":
         # Apply the new learning rate to the optimizer
         for param_group in optimizer.param_groups:
             param_group['lr'] = new_lr
-        print(f"♦️ Epoch {epoch} - Learning Rate: {new_lr:.6f}")
+        print(f"🔄️ Epoch {epoch} - Learning Rate: {new_lr:.6f}")
 
         model.train()
         running_loss, corrects, total = 0, [0, 0, 0], 0
@@ -230,7 +230,7 @@ if setting.model == "Hcaps":
             print("✅ Model saved with improved F1:", round(best_f1, 4))
         else:
             early_stop_counter += 1
-            print(f"♦️ No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
+            print(f"⚠️ No improvement in F1. Patience counter: {early_stop_counter}/{setting.PATIENCE}")
             if early_stop_counter >= setting.PATIENCE:
                 print("⛔️ Early stopping triggered.")
                 history_filename = f"{setting.model.lower()}_{timestamp}_history.pkl"

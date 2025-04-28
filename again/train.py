@@ -17,6 +17,7 @@ from Mobile_Hcapsule.MH_layers import MHCapsNet
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+# to train a mobilenet V2
 if setting.model == "mobile":
     print(f"♦️♦️start training a {setting.model} model♦️♦️")
     # 1. Load Data
@@ -137,7 +138,7 @@ if setting.model == "mobile":
         with open(history_filename, 'wb') as f:
             pickle.dump(history, f)
     print(f"♦️♦️ history of training {setting.model} model saved♦️♦️")
-
+# to train H-Caps
 if setting.model == "Hcaps":
     print(f"♦️♦️start training a {setting.model} model♦️♦️")
     # 1. Load Data
@@ -268,7 +269,7 @@ if setting.model == "Hcaps":
             pickle.dump(history, f)
 
     print(f"♦️♦️ history of training {setting.model} model saved♦️♦️")
-
+# to train H-Caps with mobilenet V2 backbone
 if setting.model == "mobile_Hcaps":
     print(f"♦️♦️start training a model♦️♦️")
     # 1. Load Data

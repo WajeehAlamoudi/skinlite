@@ -21,13 +21,13 @@ CLASS_MULTIPLIER = {
     1: -2,  # NV (downsample)
     0: 3  # MEL
 }
-model = 'Hcaps'  # Hcaps, mobile
+model = 'Hcaps'  # Hcaps, mobile, mobile_Hcaps
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IMAGE_SIZE = 224
 BATCH_SIZE = 32
 TRAIN_SHUFFLE = True
 NUM_WORKERS = 8
-TRAINABLE = 7  # 7
+TRAINABLE = 0  # 7
 CLASSES_LEN = len(CLASS_NAMES)
 EPOCHS = 100
 H_CLASSES_COUNT = [2, 3, 7]

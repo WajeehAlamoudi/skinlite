@@ -27,6 +27,7 @@ class CoarseFeatureExtractor(nn.Module):
             nn.Conv2d(in_channels, 128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
+
             nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
@@ -401,12 +402,12 @@ def dynamic_gamma(class_counts, accuracies, lambda_recon=0.0005):
     return gamma
 
 
-def classification_loss(digit1, digit2, digit3,label1, label2, label3,
-                        gamma=[1/3, 1/3, 1/3],m_plus=0.9, m_minus=0.1, eta=0.5, class_weights=None):
+def classification_loss(digit1, digit2, digit3, label1, label2, label3,
+                        gamma=[1 / 3, 1 / 3, 1 / 3], m_plus=0.9, m_minus=0.1, eta=0.5, class_weights=None):
     L1 = margin_loss(digit1, label1, m_plus, m_minus, eta, class_weights=class_weights)
     L2 = margin_loss(digit2, label2, m_plus, m_minus, eta, class_weights=class_weights)
     L3 = margin_loss(digit3, label3, m_plus, m_minus, eta, class_weights=class_weights)
-    LC = gamma[0]*L1 + gamma[1]*L2 + gamma[2]*L3
+    LC = gamma[0] * L1 + gamma[1] * L2 + gamma[2] * L3
     return LC, (L1.item(), L2.item(), L3.item())
 
 

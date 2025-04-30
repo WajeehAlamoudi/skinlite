@@ -13,7 +13,7 @@ from transforms import *
 from torch.utils.data import DataLoader
 from utils import *
 from datetime import datetime
-from Mobile_Hcapsule.MH_layers import MHCapsNet
+from Backbone_Hcapsule.Backbone_Hcapsule import ECapsNet
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -290,7 +290,7 @@ if setting.model == "mobile_Hcaps":
     val_loader = DataLoader(val_set, batch_size=setting.BATCH_SIZE, shuffle=False, num_workers=setting.NUM_WORKERS)
 
     # 2. Initialize Model, Loss, Optimizer
-    model = MHCapsNet().to(setting.DEVICE)
+    model = ECapsNet().to(setting.DEVICE)
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
     EPOCHS = setting.EPOCHS
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": [], "val_f1": [], "gamma": []}

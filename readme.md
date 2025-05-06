@@ -5,8 +5,8 @@ lightweight convolutional backbone with a hierarchical
 Capsule Network (H-CapsNet) to perform multi-level skin
 lesion classification
 on the [ISIC 2018 Task 3 dataset](https://challenge.isic-archive.com/data/).
-This project is designed for provide a benchmark of using Capsules
-in medical AI,
+This project is designed to provide a benchmark of using Capsules Networks
+in specific medical images dataset,
 focusing on both efficiency and interpretability.
 
 ---
@@ -25,7 +25,7 @@ focusing on both efficiency and interpretability.
 
 ## 📁 Project Structure
 **Well-Organized Project to ease the later improvements,
-the major works were in < Backbone_Hcapsule folder > others were side tests were implemented,
+the major works were in < Backbone_Hcapsule folder > others were side tests are implemented,
 to ensure consistency and for error handling and Debugging**
 ```
 again/
@@ -34,7 +34,7 @@ again/
 │
 ├── capsule/
 │   ├── caps_layer.py             # PrimaryCaps, DigitCaps, Decoder definitions
-│   └── Hcaps_data_loader.py      # Custom dataset loader with oversampling
+│   └── Hcaps_data_loader.py      # Custom dataset loader with oversampling & undersampling combination
 │
 ├── mobile/
 │   ├── mobile_model.py           # Baseline MobileNetV2 model
@@ -73,11 +73,11 @@ Follow instructions on [ISIC 2018](https://challenge.isic-archive.com/data/) to 
 
 ```
 /dataset/images/train/
-             /val/
-             /test/
+               /val/
+               /test/
 ```
 
-Label CSVs are already included in `/data`.
+Label CSVs are already included in `/dataset/labels`.
 
 ---
 
@@ -91,7 +91,7 @@ setting.py
 
 Adjust:
 - Models: **MobileNet V2, H-Caps, Combined H-caps**
-- `CLASS_MULTIPLIER` (custom oversampling)
+- `CLASS_MULTIPLIER` (custom oversampling & undersampling)
 - `EPOCHS`, `BATCH_SIZE`, `DEVICE`
 - Data paths & Optimizers configurations
 - And other
@@ -126,6 +126,7 @@ This section outlines the evaluation process for trained models in this project.
 ## Running the Evaluation
 
 To evaluate a model, use the `test.py` script with the following command:
+### Note: The trained models are provided on my Google Drive account, please send me a request via email or let me know to share the models.
 ### Arguments:
 - **`--model_path`**:
   - Type: `str`
@@ -155,11 +156,11 @@ Outputs:
 
 ## 📊 Example Results
 
-| Level       | Accuracy | Macro F1 |
-|-------------|----------|----------|
-| Coarse      | 77.6%    | —        |
-| Medium      | 84.9%    | —        |
-| Fine (7-cl) | 81.1%    | 72.3%    |
+| Level        | Accuracy | Macro F1 |
+|--------------|----------|----------|
+| Coarse       | 77.6%    | —        |
+| Medium       | 84.9%    | —        |
+| Fine (7-cls) | 81.1%    | 72.3%    |
 
 ---
 
